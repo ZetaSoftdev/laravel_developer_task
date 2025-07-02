@@ -94,7 +94,7 @@ class SubscriptionController extends Controller
                 $q->where('payment_status',"succeed");
             })->first();
         }
-        
+
 
         if (isset($current_plan) && count($current_plan->get())) {
             $packages = $this->package->builder()->with('package_feature.feature')->where('status', 1)->orderBy('rank', 'ASC')->where('is_trial', 0)->get();
@@ -135,6 +135,8 @@ class SubscriptionController extends Controller
                 return $this->subscriptionService->paystack_payment(null, $request->package_id, $request->type, null, null);
             } else if ($request->payment_method == 'flutterwave') {
                 return $this->subscriptionService->flutterwave_payment(null, $request->package_id, $request->type, null, null);
+            } else if ($request->payment_method == 'bank_transfer') {
+                return $this->subscriptionService->bank_transfer_payment(null, $request->package_id, $request->type, null, null);
             }
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', trans('server_not_responding'));
@@ -155,14 +157,14 @@ class SubscriptionController extends Controller
         try {
             DB::beginTransaction();
             $package_id = $id;
-            
+
             // Check pending bills
             $subscriptionBill = $this->subscriptionService->subscriptionPendingBill();
-            
+
             if ($subscriptionBill) {
                 ResponseService::errorResponse('Kindly settle any outstanding payments from before');
             }
-            
+
             $subscription = $this->subscriptionService->active_subscription(Auth::user()->school_id);
 
             // Check current active subscription
@@ -204,11 +206,11 @@ class SubscriptionController extends Controller
                 ];
                 return response()->json($response);
             } else { // Postpaid plans
-                
+
                 $subscription = $this->subscriptionService->createSubscription($package_id, null, null, 1);
             }
             DB::commit();
-            
+
             ResponseService::successResponse(trans('Package Subscription Successfully'));
         } catch (Throwable $e) {
             DB::rollBack();
@@ -233,20 +235,20 @@ class SubscriptionController extends Controller
                 return redirect()->back()->with('error', trans('server_not_responding'));
             }
             if ($paymentConfiguration->payment_method == 'Stripe') {
-                return $this->subscriptionService->stripe_payment(null, $package_id, $type, null, $isCurrentPlan);    
+                return $this->subscriptionService->stripe_payment(null, $package_id, $type, null, $isCurrentPlan);
             } else if ($paymentConfiguration->payment_method == 'Paystack') {
                 return $this->subscriptionService->paystack_payment(null, $package_id, $type, null, $isCurrentPlan);
             } else if ($paymentConfiguration->payment_method == 'Flutterwave') {
                 return $this->subscriptionService->flutterwave_payment(null, $package_id, $type, null, $isCurrentPlan);
             }
-            
-            
+
+
         } catch (\Throwable $th) {
             DB::rollBack();
             ResponseService::logErrorResponse($th, 'Subscription Controller -> Prepaid Plan method');
             ResponseService::errorResponse();
         }
-        
+
     }
 
     public function show()
@@ -315,11 +317,11 @@ class SubscriptionController extends Controller
             $tempRow['no'] = $no++;
             $tempRow['id'] = $row->id;
             if ($row->subscription->package_type == 1) {
-                $tempRow['date'] = Carbon::parse($row->subscription->end_date)->addDay()->format('Y-m-d');    
+                $tempRow['date'] = Carbon::parse($row->subscription->end_date)->addDay()->format('Y-m-d');
             } else {
                 $tempRow['date'] = Carbon::parse($row->subscription->subscription_bill->created_at)->format('Y-m-d');
             }
-            
+
             $tempRow['due_date'] = $row->due_date;
             $tempRow['name'] = $row->subscription->name;
             $tempRow['description'] = $row->description;
@@ -589,7 +591,7 @@ class SubscriptionController extends Controller
                 $id = $subscription->subscription_bill->id;
             }
         }
-        
+
 
         $payment_data = [
             'user_id'         => Auth::user()->id,
@@ -632,7 +634,7 @@ class SubscriptionController extends Controller
                 $this->subscription->deleteById($subscription_id);
             }
         }
-        
+
         return redirect()->route('subscriptions.history')->with('error', trans('the_payment_has_been_cancelled'));
     }
 
@@ -751,6 +753,7 @@ class SubscriptionController extends Controller
         }
 
         $res = $res->skip($offset)->take($limit);
+        dd($res);
         $res = (object)$res;
 
         $bulkData = array();
@@ -762,7 +765,7 @@ class SubscriptionController extends Controller
             $operate = '';
             // Update Current plan or Delete upconing plan
             if ($row->status == 'Current Cycle' || $row->status == 'Next Billing Cycle') {
-                
+
                 // Start immediate plan
                 if ($row->status == 'Current Cycle') {
                     $operate = BootstrapTableService::menuButton('update_current_plan',"#",['update-current-plan'],['data-toggle' => "modal", 'data-target' => "#update-current-plan"]);
@@ -824,6 +827,7 @@ class SubscriptionController extends Controller
             $rows[] = $tempRow;
         }
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
@@ -908,7 +912,7 @@ class SubscriptionController extends Controller
                 // Create current subscription plan bill
                 $this->subscriptionService->createSubscriptionBill($subscription, null);
             }
-            
+
 
             // Update current plan end date & delete features
             $current_subscription_expiry = $this->subscription->update($subscription->id, ['end_date' => Carbon::now()->format('Y-m-d')]);
@@ -952,8 +956,8 @@ class SubscriptionController extends Controller
                     'url' => null
                 ];
             }
-            
-            
+
+
             ResponseService::successResponse('Data Updated Successfully',$response);
         } catch (Throwable $e) {
             ResponseService::logErrorResponse($e);
@@ -981,7 +985,7 @@ class SubscriptionController extends Controller
                 // Create bill for current subscription plan
                 $subscriptionBillData = $this->subscriptionService->createSubscriptionBill($subscription, null);
             }
-            
+
 
             // Expiry current plan end date & delete features
             $this->subscription->update($subscription->id, ['end_date' => Carbon::now()->format('Y-m-d'), 'school_id' => $subscription->school_id]);
@@ -990,7 +994,7 @@ class SubscriptionController extends Controller
 
             // Create new subscription plan
             $new_subscription = $this->subscriptionService->createSubscription($request->package_id, $subscription->school_id, null, 1);
-            
+
             // Change start and end date if upcoming plan found
             $upcoming_plan = $this->subscription->builder()->with('package')->where('school_id', $subscription->school_id)->whereDate('start_date', Carbon::parse($subscription->end_date)->addDay()->format('Y-m-d'))->first();
 
@@ -1076,8 +1080,8 @@ class SubscriptionController extends Controller
             foreach ($addons as $addon) {
                 $soft_delete_addon_ids[] = $addon->id;
             }
-            
-            // Delete subscription features 
+
+            // Delete subscription features
             SubscriptionFeature::where('subscription_id', $subscription->id)->delete();
 
             // Check auto-renew plan is enabled
@@ -1187,14 +1191,14 @@ class SubscriptionController extends Controller
         } else {
             $currency = $settings['currency_code'];
         }
-    
+
 
         if (!empty($request->payment_status)) {
             $sql->whereHas('transaction',function($q) use($request){
                 $q->where('payment_status', $request->payment_status);
             });
         }
-        
+
         $total = $sql->count();
         $sql->orderBy($sort,$order)->skip($offset)->take($limit);
         $res = $sql->get();
@@ -1228,9 +1232,9 @@ class SubscriptionController extends Controller
         ResponseService::noPermissionThenRedirect('subscription-bill-payment');
 
         $subscriptionBill = $this->subscriptionBill->builder()->with('subscription.addons','school','transaction')->where('id',$id)->first();
-        
+
         $subscription = $subscriptionBill->subscription;
-        
+
         $today_date = Carbon::now()->format('Y-m-d');
         $start_date = Carbon::parse($subscription->start_date);
         $usage_days = $start_date->diffInDays($subscription->end_date) + 1;
@@ -1238,7 +1242,7 @@ class SubscriptionController extends Controller
 
         $student_charges = number_format((($usage_days * $subscription->student_charge) / $bill_cycle_days), 4);
         $staff_charges = number_format((($usage_days * $subscription->staff_charge) / $bill_cycle_days), 4);
-        
+
         $systemSettings = $this->cache->getSystemSettings();
 
         return view('subscription.subscription_bill',compact('subscriptionBill','student_charges','staff_charges','systemSettings'));
@@ -1276,7 +1280,7 @@ class SubscriptionController extends Controller
             $this->subscriptionBill->update($id,['payment_transaction_id' => $paymentTransaction->id, 'school_id' => $request->school_id]);
 
             DB::commit();
-            ResponseService::successResponse('Data Stored Successfully'); 
+            ResponseService::successResponse('Data Stored Successfully');
         } catch (\Throwable $th) {
             DB::rollBack();
             ResponseService::logErrorResponse($th);
@@ -1297,10 +1301,10 @@ class SubscriptionController extends Controller
         ResponseService::noPermissionThenRedirect('subscription-bill-payment');
         try {
             DB::beginTransaction();
-         
+
             $this->subscriptionBill->builder()->where('payment_transaction_id',$id)->update(['payment_transaction_id' => null]);
             $this->paymentTransaction->deleteById($id);
-            
+
             DB::commit();
             ResponseService::successResponse('Data Deleted Successfully');
         } catch (\Throwable $th) {
@@ -1321,7 +1325,7 @@ class SubscriptionController extends Controller
                 'code'    => 112
             ));
         }
-        
+
         try {
             // type, update/create
             DB::beginTransaction();
@@ -1353,7 +1357,7 @@ class SubscriptionController extends Controller
 
             // DB::commit();
             // return $subscription = $this->prepaid_plan($package_id, $type, $subscription_id);
-            
+
             return redirect()->route('dashboard')->with('error',trans('server_not_responding'));
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -1364,7 +1368,7 @@ class SubscriptionController extends Controller
     }
 
     public function transaction($year)
-    {   
+    {
         try {
             $paymentTransaction = $this->paymentTransaction->builder()->has('subscription_bill')
             ->where('payment_status',"succeed")
@@ -1426,11 +1430,11 @@ class SubscriptionController extends Controller
             'payment_status'  => 'Pending',
             'school_id'       => $schoolId,
         ]);
-        
+
         // upcoming_plan_type
         // 1 => Already set upcoming plan update subscription
         // 0 => Set current subscription plan as upcoming
-        
+
         $customMetaData = [
             'type' => $request->type, // Package, Addon
             'package_type' => $request->package_type ?? '',
@@ -1443,9 +1447,9 @@ class SubscriptionController extends Controller
             'school_id' => Auth::user()->school_id,
             'feature_id' => $request->feature_id ?? '',
             'end_date' => $request->end_date ?? '',
-            
+
         ];
-        
+
         $amount = max(100, round($request->amount * 100)); // Ensure minimum ₹1.00 (100 paise)
         $order = $api->order->create([
             'receipt' => time() . mt_rand(0, 999999),
@@ -1454,7 +1458,7 @@ class SubscriptionController extends Controller
             'notes' => $customMetaData,
             'payment_capture' => 1
         ]);
-        
+
         $data = [
             'order' => $order->toArray(),
             'paymentTransaction' => $paymentTransactionData
@@ -1485,7 +1489,7 @@ class SubscriptionController extends Controller
                 'order_id'        => $request->razorpay_order_id,
                 'payment_id'      => $request->razorpay_payment_id
             ]);
-        
+
             $customMetaData = [
                 'type' => $request->type, // Package, Addon
                 'package_type' => $request->package_type ?? '',
@@ -1508,7 +1512,7 @@ class SubscriptionController extends Controller
                 'notes' => $customMetaData,
                 'payment_capture' => 1,
             ])->toArray();
-            
+
             return redirect()->back()->with('success',trans('the_payment_has_been_completed_successfully'));
 
 

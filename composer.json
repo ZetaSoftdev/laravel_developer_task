@@ -9,7 +9,10 @@
     "repositories": [
         {
             "type": "path",
-            "url": "packages/laravel-wizard-installer"
+            "url": "packages/laravel-wizard-installer",
+            "options": {
+                "symlink": true
+            }
         }
     ],
     "license": "MIT",
@@ -21,7 +24,6 @@
         "awobaz/compoships": "^2.1",
         "barryvdh/laravel-dompdf": "^2.0",
         "cboden/ratchet": "^0.4.4",
-        "dacoto/laravel-wizard-installer": "*",
         "doctrine/dbal": "^3.7",
         "google/apiclient": "^2.16",
         "guzzlehttp/guzzle": "^7.2",
@@ -34,7 +36,6 @@
         "maatwebsite/excel": "^3.1",
         "psr/simple-cache": "^2.0",
         "razorpay/razorpay": "2.*",
-        "sagar/laravel-wizard-installer": "*",
         "spatie/laravel-permission": "^5.5",
         "stripe/stripe-php": "^10.0"
     },
