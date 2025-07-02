@@ -166,6 +166,7 @@ return [
         Intervention\Image\ImageServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
         App\Providers\RepositoryServiceProvider::class,
+        
 
 
         /*

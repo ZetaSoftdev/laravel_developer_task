@@ -6,30 +6,42 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Package extends Model {
+class Package extends Model
+{
     use HasFactory, SoftDeletes;
+    protected $connection = 'mysql';
 
     protected $fillable = [
-        'name',
-        'description',
-        'tagline',
-        'student_charge',
-        'staff_charge',
-        'status',
-        'is_trial',
-        'highlight',
-        'rank',
+        'name', 
+        'description', 
+        'student_charge', 
+        'staff_charge', 
+        'is_trial', 
+        'status', 
+        'rank', 
+        'duration_type',
+        'duration', 
         'days',
+        'tag', 
+        'highlight', 
+        'package_type',
         'type',
-        'no_of_students',
-        'no_of_staffs',
-        'charges'
+        'charges', 
+        'no_of_students', 
+        'no_of_staffs'
+    ];
+
+    protected $casts = [
+        'is_trial' => 'boolean',
+        'status'   => 'boolean',
+        'highlight' => 'boolean',
+        'type' => 'integer'
     ];
 
     protected $appends = ['package_with_type'];
-    protected $connection = 'mysql';
 
-    public function package_feature() {
+    public function package_feature()
+    {
         return $this->hasMany(PackageFeature::class);
     }
 
@@ -49,6 +61,15 @@ class Package extends Model {
             return $this->name .' #'. trans('postpaid');
         } else {
             return $this->name .' #'. trans('prepaid');
+        }
+    }
+
+    public function getFinalAmountAttribute()
+    {
+        if ($this->type == 0) { // Prepaid
+            return $this->charges ?? 0;
+        } else { // Postpaid
+            return 0; // Will be calculated based on usage
         }
     }
 }
