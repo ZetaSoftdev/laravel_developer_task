@@ -417,7 +417,7 @@ $('#edit_resubmission_allowed').on('change', function () {
 
 $('.checkbox_add_url').on('change', function () {
     if ($(this).is(':checked')) {
-        $(this).val(1);      
+        $(this).val(1);
         // $('#fileOption').hide(500);
         $('#add_url').show(500);
     } else {
@@ -429,7 +429,7 @@ $('.checkbox_add_url').on('change', function () {
 
 $('.edit_checkbox_add_url').on('change', function () {
     if ($(this).is(':checked')) {
-        $(this).val(1);      
+        $(this).val(1);
         // $('#fileOption').hide(500);
         $('#edit_add_url').show(500);
     } else {
@@ -1045,28 +1045,28 @@ $('#flutterwave_status').on('change', function (e) {
     }
 });
 
-$('#bank_transfer_status').on('change', function (e) {
-    e.preventDefault();
-    if ($(this).val() == 1) {
-        $('#razorpay_status').val(0);
-        $('#stripe_status').val(0);
-    } else {
-        $('#bank_transfer_status').val(1);
-    }
-});
+// $('#bank_transfer_status').on('change', function (e) {
+//     e.preventDefault();
+//     if ($(this).val() == 1) {
+//         $('#razorpay_status').val(0);
+//         $('#stripe_status').val(0);
+//     } else {
+//         $('#bank_transfer_status').val(1);
+//     }
+// });
 
 // Paystack toggle for new UI
 $(document).ready(function() {
     $('#Paystack').on('change', function() {
         if ($(this).is(':checked')) {
             $('#PaystackForm').removeClass('d-none');
-            
+
             // Disable other payment methods
             $('#stripe_status').val(0);
             $('#razorpay_status').val(0);
             $('#flutterwave_status').val(0);
             $('#bank_transfer_status').val(0);
-            
+
             // Uncheck other toggles
             $('#Flutterwave').prop('checked', false);
             $('#FlutterwaveForm').addClass('d-none');
@@ -1074,18 +1074,18 @@ $(document).ready(function() {
             $('#PaystackForm').addClass('d-none');
         }
     });
-    
+
     // Flutterwave toggle for new UI
     $('#Flutterwave').on('change', function() {
         if ($(this).is(':checked')) {
             $('#FlutterwaveForm').removeClass('d-none');
-            
+
             // Disable other payment methods
             $('#stripe_status').val(0);
             $('#razorpay_status').val(0);
             $('#paystack_status').val(0);
             $('#bank_transfer_status').val(0);
-            
+
             // Uncheck other toggles
             $('#Paystack').prop('checked', false);
             $('#PaystackForm').addClass('d-none');
@@ -1506,7 +1506,7 @@ $(document).on('click', '.add-new-edit-eoption', function (e) {
 // $('input[type="file"]').on('change', function () {
 //     $(this).closest('form').valid();
 // })
-select2Search($(".edit-admin-search"), baseUrl + "/schools/admin/search", null, window.trans["search_admin_email"], Select2SearchDesignTemplate, function (repo) {
+select2Search($(".edit-admin-search"), baseUrl + "/schools/admin/search", null, null, Select2SearchDesignTemplate, function (repo) {
     if (!repo.text) {
         $('#edit-admin-first-name').val(repo.first_name);
         $('#edit-admin-last-name').val(repo.last_name);
@@ -2105,17 +2105,17 @@ if (calendarEl !== null) {
             let overlappingEvents = createTimetable.getEvents().filter(function(existingEvent) {
                 // Skip the current event being dragged
                 if (existingEvent.id === event.event.id) return false;
-                
+
                 // Check if events are on the same day
                 let existingDate = new Date(existingEvent.start);
                 if (existingDate.getDay() !== date.getDay()) return false;
-                
+
                 // Check for time overlap
                 let existingStart = new Date(existingEvent.start);
                 let existingEnd = new Date(existingEvent.end);
                 let newStart = new Date(event.event.start);
                 let newEnd = new Date(event.event.end);
-                
+
                 return (newStart < existingEnd && newEnd > existingStart);
             });
 
@@ -2166,17 +2166,17 @@ if (calendarEl !== null) {
             let overlappingEvents = createTimetable.getEvents().filter(function(existingEvent) {
                 // Skip the current event being dragged
                 if (existingEvent.id === event.event.id) return false;
-                
+
                 // Check if events are on the same day
                 let existingDate = new Date(existingEvent.start);
                 if (existingDate.getDay() !== date.getDay()) return false;
-                
+
                 // Check for time overlap
                 let existingStart = new Date(existingEvent.start);
                 let existingEnd = new Date(existingEvent.end);
                 let newStart = new Date(event.event.start);
                 let newEnd = new Date(event.event.end);
-                
+
                 return (newStart < existingEnd && newEnd > existingStart);
             });
 
@@ -2207,17 +2207,17 @@ if (calendarEl !== null) {
             let overlappingEvents = createTimetable.getEvents().filter(function(existingEvent) {
                 // Skip the current event being resized
                 if (existingEvent.id === event.event.id) return false;
-                
+
                 // Check if events are on the same day
                 let existingDate = new Date(existingEvent.start);
                 if (existingDate.getDay() !== date.getDay()) return false;
-                
+
                 // Check for time overlap
                 let existingStart = new Date(existingEvent.start);
                 let existingEnd = new Date(existingEvent.end);
                 let newStart = new Date(event.event.start);
                 let newEnd = new Date(event.event.end);
-                
+
                 return (newStart < existingEnd && newEnd > existingStart);
             });
 
@@ -2710,7 +2710,7 @@ $(document).on('click', '.pay-in-installment', function () {
             }
         })
     } else {
-        // 
+        //
         $('.without_installment_enter_amount').removeClass('d-none');
         $('.default-checked-installment').prop('checked', false).trigger('change');
         $('.installment_rows').hide(200);
@@ -2825,7 +2825,7 @@ $('#subject-id').on('change', function () {
     // Filter lessons based on selected subject
     $("#topic-lesson-id option").each(function () {
         let lessonSubjectId = $(this).data('subject');
-        
+
         if (selectedSubjectId == lessonSubjectId) {
             $(this).show();
             lessonOptionsFound = true;
@@ -3112,7 +3112,7 @@ $('#tags').tagsInput({
     'placeholderColor': '#666666'
 });
 
-$('.filter_birthday').change(function (e) { 
+$('.filter_birthday').change(function (e) {
     e.preventDefault();
     let type = $(this).val();
     $.ajax({
@@ -3121,7 +3121,7 @@ $('.filter_birthday').change(function (e) {
         success: function (response) {
             let html = '';
             if (response.data.length) {
-                $.each(response.data, function (index, value) { 
+                $.each(response.data, function (index, value) {
                     html += '<tr> <td> <img src="'+value.image+'" onerror="onErrorImage(event)" class="me-2" alt="image"> </td> <td>'+value.full_name+' </td> <td class="text-right">'+value.dob_date+'</td> </tr>';
                 });
             } else {
@@ -3155,10 +3155,10 @@ $('.filter_leaves').change(function (e) {
                 if (value.type == "Second Half") {
                     html += '<tr> <td>'+value.leave.user.full_name+'<span class="m-2 text-white text-small leave-type leave-half">'+value.type+'</span> </td> <td class="text-right">'+value.leave_date+'</td> </tr>';
                 }
-                
+
             });
         } else {
-            // 
+            //
             html += '<tr> <td colspan="2" class="text-center"> '+window.trans['All are presents']+' </td> </tr>';
         }
         $('.leave-list').html(html);
@@ -3191,11 +3191,11 @@ $('#exam_result_session_year_id,#exam_reuslt_exam_name').on('change', function (
         $.ajax({
             type: "get",
             url: baseUrl + '/exams/result-report/'+session_year_id+'/'+exam_name,
-            success: function (response) {                
+            success: function (response) {
                 let html = '';
                 if (response.data.length) {
                     let bg_colors = ['bg-success','bg-info','bg-primary','bg-warning','bg-danger'];
-                    $.each(response.data, function (index, value) { 
+                    $.each(response.data, function (index, value) {
                          let total_students = parseInt(value.total_students);
                          let total_pass = parseInt(value.pass_students);
                          let per = (total_pass*100) / total_students;
@@ -3208,13 +3208,13 @@ $('#exam_result_session_year_id,#exam_reuslt_exam_name').on('change', function (
                 }
                 $('#class-progress-report').html(html);
             }
-        });    
+        });
     } else {
         $('#class-progress-report').html('<div class="text-center"> <span class="text-small"> '+window.trans['no_exam_result_found']+' </span> </div>');
     }
 })
 
-$('.class-section-attendance').change(function (e) { 
+$('.class-section-attendance').change(function (e) {
     e.preventDefault();
     let class_id = $(this).val();
 
@@ -3236,7 +3236,7 @@ $('.class-section-attendance').change(function (e) {
 });
 
 
-$('.year-filter').change(function (e) { 
+$('.year-filter').change(function (e) {
     e.preventDefault();
     let year = $(this).val();
 
@@ -3248,17 +3248,17 @@ $('.year-filter').change(function (e) {
             if (response.data) {
                 setTimeout(() => {
                     subscription_transaction(Object.keys(response.data), Object.values(response.data));
-                }, 1000);    
+                }, 1000);
             } else {
                 setTimeout(() => {
                     subscription_transaction(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], []);
-                }, 1000); 
+                }, 1000);
             }
         }
     });
 });
 
-$('.page_layout').change(function (e) { 
+$('.page_layout').change(function (e) {
     e.preventDefault();
     let layout = $(this).val();
     if (layout == 'A4 Landscape') {
@@ -3274,7 +3274,7 @@ $('.page_layout').change(function (e) {
     }
 });
 
-$('.certificate_type').change(function (e) { 
+$('.certificate_type').change(function (e) {
     e.preventDefault();
     var type = $('input[name="type"]:checked').val();
     if (type == 'Student') {
@@ -3287,7 +3287,7 @@ $('.certificate_type').change(function (e) {
 });
 
 
-$('.btn_tag').click(function (e) { 
+$('.btn_tag').click(function (e) {
     e.preventDefault();
     var value = $(this).data('value');
     if (tinymce.activeEditor) { // Check if editor is active
@@ -3310,17 +3310,17 @@ $('#stripe_status').on('change', function (e) {
     }
 });
 
-$('.fees-over-due-class').change(function (e) { 
+$('.fees-over-due-class').change(function (e) {
     e.preventDefault();
     let class_section_id = $(this).val();
-   
+
     $.ajax({
         type: "get",
         url: baseUrl + '/fees/fees-over-due/' + class_section_id,
         success: function(response) {
             let html = '';
             if (response.data.length) {
-                $.each(response.data, function (index, value) { 
+                $.each(response.data, function (index, value) {
                     html += '<tr> <td> <img src="'+ value.user.image +'"/></td><td>' + value.full_name + '</td> <td> <input type="checkbox" name="studentids[]" data-id="' + value.user.id + '"> </td> </tr>';
                 });
                 $('.fees-overdue-btn').removeClass('d-none');
@@ -3363,7 +3363,7 @@ $('#fees-overdue-form').on('submit', function(e) {
     }
 
     formAjaxRequest('POST', url, data, formElement, submitButtonElement, successCallback);
-            
+
 });
 
 $(document).ready(function() {
@@ -3381,7 +3381,7 @@ $('#edit_student_class_id').on('change', function () {
 
     let class_id = $(this).val();
     let url = baseUrl + '/students/get-class-section-by-class/' + class_id;
-  
+
     $('#edit_student_class_section_id option').hide();
 
     function successCallback(response) {
@@ -3413,7 +3413,7 @@ $('#filter_class_id').on('change', function () {
     }
 
     let url = baseUrl + '/students/get-class-section-by-class/' + class_id;
-  
+
     $('#filter_class_section_id option').hide();
 
     function successCallback(response) {
@@ -3444,13 +3444,13 @@ $('.edit_custom').on('change', function(){
 
     $('.customDomain').show().find('input').prop('disabled', false);
     $('.defaultDomain').hide().find('input').prop('disabled', true);
-    
+
 });
 
 $('#class_section_id').on('change', function () {
 
     let class_section_id = $(this).val();
-   
+
     let url = baseUrl + '/exams/get-exams/' + class_section_id;
     $('#exam_id option').hide();
     $('#subject_id option').hide();
@@ -3476,7 +3476,7 @@ $('#exam_id').on('change', function () {
     let class_section_id = $('#class_section_id').val();
     let exam_id = $(this).val();
 
-    let url = baseUrl + '/exams/get-subjects/' + exam_id + '?class_section_id=' + class_section_id; 
+    let url = baseUrl + '/exams/get-subjects/' + exam_id + '?class_section_id=' + class_section_id;
 
     $('#subject_id option').hide();
 
@@ -3506,7 +3506,7 @@ $('#subject_id').on('change', function(){
     }else{
         $('#downloadDummyFile').show();
     }
-   
+
 });
 
 $('#change-order-school-form-field').click(async function () {
@@ -3540,7 +3540,7 @@ $(document).ready(function() {
     $('#Stripe').on('change', function() {
         if ($(this).is(':checked')) {
             $('#StripeForm').removeClass('d-none');
-            
+
             // Uncheck other toggles
             $('#Paystack').prop('checked', false);
             $('#PaystackForm').addClass('d-none');
@@ -3548,7 +3548,7 @@ $(document).ready(function() {
             $('#RazorpayForm').addClass('d-none');
             $('#Flutterwave').prop('checked', false);
             $('#FlutterwaveForm').addClass('d-none');
-            
+
             // For legacy dropdowns
             $('#razorpay_status').val(0);
             $('#paystack_status').val(0);
@@ -3558,12 +3558,12 @@ $(document).ready(function() {
             $('#StripeForm').addClass('d-none');
         }
     });
-    
+
     // Razorpay toggle
     $('#Razorpay').on('change', function() {
         if ($(this).is(':checked')) {
             $('#RazorpayForm').removeClass('d-none');
-            
+
             // Uncheck other toggles
             $('#Stripe').prop('checked', false);
             $('#StripeForm').addClass('d-none');
@@ -3571,7 +3571,7 @@ $(document).ready(function() {
             $('#PaystackForm').addClass('d-none');
             $('#Flutterwave').prop('checked', false);
             $('#FlutterwaveForm').addClass('d-none');
-            
+
             // For legacy dropdowns
             $('#stripe_status').val(0);
             $('#paystack_status').val(0);
@@ -3581,12 +3581,12 @@ $(document).ready(function() {
             $('#RazorpayForm').addClass('d-none');
         }
     });
-    
+
     // Paystack toggle
     $('#Paystack').on('change', function() {
         if ($(this).is(':checked')) {
             $('#PaystackForm').removeClass('d-none');
-            
+
             // Uncheck other toggles
             $('#Stripe').prop('checked', false);
             $('#StripeForm').addClass('d-none');
@@ -3594,7 +3594,7 @@ $(document).ready(function() {
             $('#RazorpayForm').addClass('d-none');
             $('#Flutterwave').prop('checked', false);
             $('#FlutterwaveForm').addClass('d-none');
-            
+
             // For legacy dropdowns
             $('#stripe_status').val(0);
             $('#razorpay_status').val(0);
@@ -3604,12 +3604,12 @@ $(document).ready(function() {
             $('#PaystackForm').addClass('d-none');
         }
     });
-    
+
     // Flutterwave toggle
     $('#Flutterwave').on('change', function() {
         if ($(this).is(':checked')) {
             $('#FlutterwaveForm').removeClass('d-none');
-            
+
             // Uncheck other toggles
             $('#Stripe').prop('checked', false);
             $('#StripeForm').addClass('d-none');
@@ -3617,7 +3617,7 @@ $(document).ready(function() {
             $('#RazorpayForm').addClass('d-none');
             $('#Paystack').prop('checked', false);
             $('#PaystackForm').addClass('d-none');
-            
+
             // For legacy dropdowns
             $('#stripe_status').val(0);
             $('#razorpay_status').val(0);

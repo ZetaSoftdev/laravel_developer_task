@@ -419,38 +419,36 @@
 </div>
 
 {{-- Bank transfer --}}
-{{-- <div class="border border-secondary rounded-lg mb-3">
-
-
+<div class="border border-secondary rounded-lg mb-3">
     <h3 class="col-12 page-title mt-3 ">
-        {{ __('bank_transfer') }}
+        {{ __('Manual Bank / Easypaisa') }}
     </h3>
     <div class="row my-4 mx-1">
         <div class="form-group col-sm-12 col-md-6">
-            <label for="bank_transfer_status">{{__("status")}} <span class="text-danger">*</span></label>
+            <label for="bank_transfer_status">{{__("Status")}} <span class="text-danger">*</span></label>
             <select name="gateway[bank_transfer][status]" id="bank_transfer_status" class="form-control">
                 <option value="0" {{(isset($paymentGateway["bank_transfer"]["status"]) && $paymentGateway["bank_transfer"]["status"]==0) ? 'selected' : ''}}>{{__("Disable")}}</option>
-                <option value="1" {{(isset($paymentGateway["bank_transfer"]["status"]) && $paymentGateway["bank_transfer"]["status"]==1) ? 'selected' : ''}}>{{__("Enable")}}</option>         
+                <option value="1" {{(isset($paymentGateway["bank_transfer"]["status"]) && $paymentGateway["bank_transfer"]["status"]==1) ? 'selected' : ''}}>{{__("Enable")}}</option>
             </select>
         </div>
         <input type="hidden" name="gateway[bank_transfer][currency_code]" id="bank_transfer_currency" value="{{$paymentGateway["bank_transfer"]['currency_code'] ?? ''}}">
 
         <div class="form-group col-sm-12 col-md-6">
-            <label for="bank_name">{{__("bank_name")}} <span class="text-danger">*</span></label>
+            <label for="bank_name">{{__("Bank Name")}} <span class="text-danger">*</span></label>
             <input type="text" name="gateway[bank_transfer][bank_name]" id="bank_name" class="form-control" placeholder="{{ __('bank_name') }}" required value="{{$paymentGateway["bank_transfer"]['bank_name'] ?? ''}}">
         </div>
 
         <div class="form-group col-sm-12 col-md-6">
-            <label for="account_name">{{__("account_name")}} <span class="text-danger">*</span></label>
+            <label for="account_name">{{__("Account Name")}} <span class="text-danger">*</span></label>
             <input type="text" name="gateway[bank_transfer][account_name]" id="razorpay_secret_key" class="form-control" placeholder="{{ __('account_name') }}" required value="{{$paymentGateway["bank_transfer"]['account_name'] ??''}}">
         </div>
 
         <div class="form-group col-sm-12 col-md-6">
-            <label for="account_no">{{__("account_no")}} <span class="text-danger">*</span></label>
+            <label for="account_no">{{__("Account No")}} <span class="text-danger">*</span></label>
             <input type="text" name="gateway[bank_transfer][account_no]" id="account_no" class="form-control" placeholder="{{ __('account_no') }}" required value="{{$paymentGateway["bank_transfer"]['account_no'] ?? ''}}">
         </div>
 
-       
+
     </div>
-    
-</div> --}}
+
+</div>

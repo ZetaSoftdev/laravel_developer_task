@@ -19,7 +19,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class TimetableController extends Controller {
+class TimetableController extends Controller
+{
     private SubjectTeacherInterface $subjectTeacher;
     private SubjectInterface $subject;
     private TimetableInterface $timetable;
@@ -30,7 +31,8 @@ class TimetableController extends Controller {
     private ClassSchoolInterface $class;
     private MediumInterface $medium;
 
-    public function __construct(SubjectTeacherInterface $subjectTeacher, SubjectInterface $subject, TimetableInterface $timetable, ClassSectionInterface $classSection, UserInterface $user, SchoolSettingInterface $schoolSettings, CachingService $cache, ClassSchoolInterface $class, MediumInterface $medium) {
+    public function __construct(SubjectTeacherInterface $subjectTeacher, SubjectInterface $subject, TimetableInterface $timetable, ClassSectionInterface $classSection, UserInterface $user, SchoolSettingInterface $schoolSettings, CachingService $cache, ClassSchoolInterface $class, MediumInterface $medium)
+    {
         $this->subjectTeacher = $subjectTeacher;
         $this->subject = $subject;
         $this->timetable = $timetable;
@@ -42,7 +44,8 @@ class TimetableController extends Controller {
         $this->medium = $medium;
     }
 
-    public function index() {
+    public function index()
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect('timetable-list');
 
@@ -54,24 +57,25 @@ class TimetableController extends Controller {
         // Convert Timetable Duration time to number
         $timetableData['timetable_duration'] = Carbon::parse($timetableData['timetable_duration'] ?? "00:00:00")->diffInMinutes(Carbon::parse('00:00:00'));
 
-        $classes = $this->class->builder()->with('stream')->get()->pluck('full_name','id');
-        $mediums = $this->medium->builder()->pluck('name','id');
-        
+        $classes = $this->class->builder()->with('stream')->get()->pluck('full_name', 'id');
+        $mediums = $this->medium->builder()->pluck('name', 'id');
 
-        return view('timetable.index', compact('timetableData','classes','mediums'));
+
+        return view('timetable.index', compact('timetableData', 'classes', 'mediums'));
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect(['timetable-create']);
         $request->validate([
             'subject_teacher_id' => 'nullable|numeric',
-            'class_section_id'   => 'required|numeric',
-            'subject_id'         => 'nullable|numeric',
+            'class_section_id' => 'required|numeric',
+            'subject_id' => 'nullable|numeric',
             'start_time' => 'required',
-            'end_time'   => 'required',
-            'day'                => 'required',
-            'note'               => 'nullable',
+            'end_time' => 'required',
+            'day' => 'required',
+            'note' => 'nullable',
         ]);
         try {
             $timetable = $this->timetable->create([
@@ -85,7 +89,8 @@ class TimetableController extends Controller {
         }
     }
 
-    public function edit($classSectionID) {
+    public function edit($classSectionID)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect('timetable-edit');
         $currentSemester = $this->cache->getDefaultSemesterData();
@@ -93,7 +98,7 @@ class TimetableController extends Controller {
 
         $subjectTeachers = $this->subjectTeacher->builder()->with('subject:id,name,type,bg_color', 'teacher:id,first_name,last_name')->whereHas('class_section', function ($q) use ($classSectionID) {
             $q->where('id', $classSectionID);
-        })->whereHas('class_subject',function($q) {
+        })->whereHas('class_subject', function ($q) {
             $q->whereNull('deleted_at');
         })->orderBy('subject_id', 'ASC')->CurrentSemesterData()->get();
 
@@ -110,23 +115,24 @@ class TimetableController extends Controller {
         return view('timetable.edit', compact('subjectTeachers', 'subjectWithoutTeacherAssigned', 'classSection', 'timetables', 'timetableSettingsData', 'currentSemester'));
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect(['timetable-edit']);
         $request->validate([
             'start_time' => 'required',
-            'end_time'   => 'required',
-            'day'        => 'required',
+            'end_time' => 'required',
+            'day' => 'required',
         ]);
         $start_time = $request->start_time;
         $end_time = $request->end_time;
-        $start_time = Carbon::createFromFormat('H:i:s',$start_time)->format('H:i:s');
-        $end_time = Carbon::createFromFormat('H:i:s',$end_time)->format('H:i:s');
+        $start_time = Carbon::createFromFormat('H:i:s', $start_time)->format('H:i:s');
+        $end_time = Carbon::createFromFormat('H:i:s', $end_time)->format('H:i:s');
 
         $schoolSettings = $this->cache->getSchoolSettings();
-        $timetable_start_time = Carbon::createFromFormat('H:i:s',$schoolSettings['timetable_start_time'])->format('H:i:s');
-        $timetable_end_time = Carbon::createFromFormat('H:i:s',$schoolSettings['timetable_end_time'])->format('H:i:s');
-        
+        $timetable_start_time = Carbon::createFromFormat('H:i:s', $schoolSettings['timetable_start_time'])->format('H:i:s');
+        $timetable_end_time = Carbon::createFromFormat('H:i:s', $schoolSettings['timetable_end_time'])->format('H:i:s');
+
         try {
             if ($timetable_start_time <= $start_time && $timetable_end_time >= $end_time) {
                 $this->timetable->updateOrCreate(['id' => $id,], $request->all());
@@ -141,7 +147,8 @@ class TimetableController extends Controller {
     }
 
 
-    public function show(Request $request) {
+    public function show(Request $request)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect('timetable-list');
         $offset = request('offset', 0);
@@ -154,9 +161,9 @@ class TimetableController extends Controller {
         ]);
 
         if ($schoolSettings->timetable_start_time ?? '' && $schoolSettings->timetable_end_time ?? '') {
-            $sql = $this->classSection->builder()->with(['class:id,name,stream_id', 'class.stream', 'section:id,name', 'medium:id,name', 'timetable' => function ($query) use($schoolSettings){
+            $sql = $this->classSection->builder()->with(['class:id,name,stream_id', 'class.stream', 'section:id,name', 'medium:id,name', 'timetable' => function ($query) use ($schoolSettings) {
                 $query->CurrentSemesterData()
-                ->where('start_time','>=',$schoolSettings->timetable_start_time)->where('end_time','<=',$schoolSettings->timetable_end_time)->with('subject:id,name,type');
+                    ->where('start_time', '>=', $schoolSettings->timetable_start_time)->where('end_time', '<=', $schoolSettings->timetable_end_time)->with('subject:id,name,type');
             }]);
         } else {
             $sql = $this->classSection->builder()->with(['class:id,name,stream_id', 'class.stream', 'section:id,name', 'medium:id,name', 'timetable' => function ($query) {
@@ -164,7 +171,7 @@ class TimetableController extends Controller {
             }]);
         }
 
-        
+
         if (!empty($request->search)) {
             $search = $request->search;
             $sql->where(function ($query) use ($search) {
@@ -172,9 +179,9 @@ class TimetableController extends Controller {
                     $q->where('name', 'LIKE', "%$search%");
                 })->orWhereHas('medium', function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%");
-                })->orWhereHas('class',function($q) use($search){
+                })->orWhereHas('class', function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%");
-                })->orWhereHas('class.stream',function($q) use($search){
+                })->orWhereHas('class.stream', function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%");
                 });
             });
@@ -247,7 +254,8 @@ class TimetableController extends Controller {
         return response()->json($bulkData);
     }
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenSendJson('timetable-delete');
         try {
@@ -259,7 +267,8 @@ class TimetableController extends Controller {
         }
     }
 
-    public function teacherIndex() {
+    public function teacherIndex()
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect('timetable-list');
 
@@ -270,7 +279,8 @@ class TimetableController extends Controller {
         return view('timetable.teacher.index', compact('timetableSettingsData'));
     }
 
-    public function teacherList(Request $request) {
+    public function teacherList(Request $request)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect('timetable-list');
         $offset = request('offset', 0);
@@ -292,31 +302,31 @@ class TimetableController extends Controller {
                 $q->where('id', $request->class_id);
             });
         }
-        
+
         if (!empty($request->section_id)) {
             $sql->whereHas('timetable.class_section.section', function ($q) use ($request) {
                 $q->where('id', $request->section_id);
             });
         }
-        
+
         if (!empty($request->subject_id)) {
             $sql->whereHas('timetable.subject', function ($q) use ($request) {
                 $q->where('id', $request->subject_id);
             });
         }
-        
+
         if (!empty($request->teacher_id)) {
             $sql->where('id', $request->teacher_id);
         }
-        
+
         if (!empty($request->status)) {
             $sql->where('status', $request->status);
         }
-        
+
         if (!empty($request->role)) {
             $sql->where('role', $request->role);
         }
-        
+
         if (!empty($request->created_at)) {
             $sql->whereDate('created_at', '=', $request->created_at);
         }
@@ -350,12 +360,13 @@ class TimetableController extends Controller {
         return response()->json($bulkData);
     }
 
-    public function teacherShow($teacherID) {
+    public function teacherShow($teacherID)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         $teacher = $this->user->findById($teacherID, ['id', 'first_name', 'last_name']);
         $timetables = $this->timetable->builder()->whereHas('subject_teacher', function ($q) use ($teacherID) {
             $q->where('teacher_id', $teacherID);
-        })->with('subject:id,name,bg_color', 'class_section.class', 'class_section.section','class_section.medium')->get();
+        })->with('subject:id,name,bg_color', 'class_section.class', 'class_section.section', 'class_section.medium')->get();
 
         // Get Timetable Settings Data
         $timetableSettingsData = $this->schoolSettings->getBulkData([
@@ -364,7 +375,8 @@ class TimetableController extends Controller {
         return view('timetable.teacher.view', compact('timetables', 'teacher', 'timetableSettingsData'));
     }
 
-    public function updateTimetableSettings(Request $request) {
+    public function updateTimetableSettings(Request $request)
+    {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenRedirect('timetable-list');
         try {
@@ -407,7 +419,7 @@ class TimetableController extends Controller {
         ResponseService::noFeatureThenRedirect('Timetable Management');
         ResponseService::noPermissionThenSendJson('timetable-delete');
         try {
-            $this->timetable->builder()->where('class_section_id',$id)->delete();
+            $this->timetable->builder()->where('class_section_id', $id)->delete();
             ResponseService::successResponse('Data Deleted Successfully');
         } catch (Throwable $e) {
             ResponseService::logErrorResponse($e);

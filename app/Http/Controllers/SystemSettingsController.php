@@ -94,7 +94,7 @@ class SystemSettingsController extends Controller {
             if ($request->two_factor_verification == 1 || $request->two_factor_verification == 0) {
                 User::where('id', Auth::user()->id)->update(['two_factor_enabled' => $request->two_factor_verification ? 1 : 0]);
             }
-            
+
             EnvSet::setKey('timezone', $request->time_zone);
             EnvSet::save();
 
@@ -102,7 +102,7 @@ class SystemSettingsController extends Controller {
             EnvSet::save();
 
             $this->systemSettings->upsert($data, ["name"], ["data"]);
-            
+
             $this->cache->removeSystemCache(config('constants.CACHE.SYSTEM.SETTINGS'));
             ResponseService::successResponse('Data Updated Successfully');
         } catch (Throwable $e) {
@@ -172,7 +172,7 @@ class SystemSettingsController extends Controller {
         $terms_condition_data = htmlspecialchars_decode($this->cache->getSystemSettings('terms_condition'));
         $student_terms_condition_data = htmlspecialchars_decode($this->cache->getSystemSettings('student_terms_condition'));
         $teacher_terms_condition_data = htmlspecialchars_decode($this->cache->getSystemSettings('teacher_terms_condition'));
-        
+
         return view('settings.terms-condition.terms-condition', compact('terms_condition_data', 'student_terms_condition_data', 'teacher_terms_condition_data'));
     }
 
@@ -366,14 +366,14 @@ class SystemSettingsController extends Controller {
 
     public function paymentUpdate(Request $request) {
         /* This method is used for both Super Admin & School Admin */
-      
+
         ResponseService::noAnyRoleThenRedirect(['Super Admin', 'School Admin']);
         $request->validate([
             'gateway.Stripe.status' => 'required|boolean',
             'gateway.Stripe.api_key' => 'required_if:gateway.Stripe.status,1',
             'gateway.Stripe.secret_key' => 'required_if:gateway.Stripe.status,1',
             'gateway.Stripe.webhook_secret_key' => 'required_if:gateway.Stripe.status,1',
-        
+
             'gateway.Razorpay.status' => 'required|boolean',
             'gateway.Razorpay.api_key' => 'required_if:gateway.Razorpay.status,1',
             'gateway.Razorpay.secret_key' => 'required_if:gateway.Razorpay.status,1',
@@ -388,11 +388,13 @@ class SystemSettingsController extends Controller {
             'gateway.Flutterwave.api_key' => 'required_if:gateway.Flutterwave.status,1',
             'gateway.Flutterwave.secret_key' => 'required_if:gateway.Flutterwave.status,1',
             'gateway.Flutterwave.webhook_secret_key' => 'required_if:gateway.Flutterwave.status,1',
+
+            'gateway.bank_transfer.status' => 'required|boolean',
         ], [
             'gateway.Stripe.api_key.required_if' => trans('The Stripe Publishable Key is required when Stripe is enabled'),
             'gateway.Stripe.secret_key.required_if' => trans('The Stripe Secret Key is required when Stripe is enabled'),
             'gateway.Stripe.webhook_secret_key.required_if' => trans('The Stripe Webhook Secret is required when Stripe is enabled'),
-            
+
             'gateway.Razorpay.api_key.required_if' => trans('The Razorpay API Key is required when Razorpay is enabled'),
             'gateway.Razorpay.secret_key.required_if' => trans('The Razorpay Secret Key is required when Razorpay is enabled'),
             'gateway.Razorpay.webhook_secret_key.required_if' => trans('The Razorpay Webhook Secret is required when Razorpay is enabled'),
@@ -446,30 +448,30 @@ class SystemSettingsController extends Controller {
                         'STRIPE_WEBHOOK_SECRET' => trim($request->gateway['Stripe']['webhook_secret_key']),
                         'STRIPE_WEBHOOK_URL' => trim($request->gateway['Stripe']['webhook_url'] ?? "")
                     ]);
-                } else if($request->gateway['Razorpay']['status'] == 1) { 
+                } else if($request->gateway['Razorpay']['status'] == 1) {
                     $env_update = changeEnv([
                         'RAZORPAY_API_KEY' => trim($request->gateway['Razorpay']['api_key']),
                         'RAZORPAY_SECRET_KEY' => trim($request->gateway['Razorpay']['secret_key']),
                         'RAZORPAY_WEBHOOK_SECRET' => trim($request->gateway['Razorpay']['webhook_secret_key']),
                         'RAZORPAY_WEBHOOK_URL' => trim($request->gateway['Razorpay']['webhook_url'] ?? ""),
                     ]);
-                } 
-                else if($request->gateway['Paystack']['status'] == 1) { 
+                }
+                else if($request->gateway['Paystack']['status'] == 1) {
                     $env_update = changeEnv([
                         'PAYSTACK_PUBLIC_KEY' => trim($request->gateway['Paystack']['api_key']),
                         'PAYSTACK_SECRET_KEY' => trim($request->gateway['Paystack']['secret_key']),
                         'PAYSTACK_WEBHOOK_SECRET' => trim($request->gateway['Paystack']['webhook_secret_key']),
                         'PAYSTACK_WEBHOOK_URL' => trim($request->gateway['Paystack']['webhook_url'] ?? ""),
                     ]);
-                } 
-                else if($request->gateway['Flutterwave']['status'] == 1) { 
+                }
+                else if($request->gateway['Flutterwave']['status'] == 1) {
                     $env_update = changeEnv([
                         'FLUTTERWAVE_PUBLISHABLE_KEY' => trim($request->gateway['Flutterwave']['api_key']),
                         'FLUTTERWAVE_SECRET_KEY' => trim($request->gateway['Flutterwave']['secret_key']),
                         'FLUTTERWAVE_WEBHOOK_SECRET' => trim($request->gateway['Flutterwave']['webhook_secret_key']),
                         'FLUTTERWAVE_WEBHOOK_URL' => trim($request->gateway['Flutterwave']['webhook_url']),
                     ]);
-                } 
+                }
 
 
                 if ($env_update) {
@@ -592,7 +594,7 @@ class SystemSettingsController extends Controller {
                 foreach ($school_ids as $key => $school_id) {
                     $this->cache->removeSchoolCache(config('constants.CACHE.SCHOOL.FEATURES'),$school_id);
                 }
-                
+
             } else {
                 // Create trial Package
                 $package = $this->package->create($package_data);
@@ -636,7 +638,7 @@ class SystemSettingsController extends Controller {
         $settings = array(
             'firebase_service_file', 'firebase_project_id'
         );
-        
+
         if( $request->file('firebase_service_file') != null) {
             $filePath = $request->file('firebase_service_file')->getRealPath();
             $jsonContent = file_get_contents($filePath);
@@ -652,9 +654,9 @@ class SystemSettingsController extends Controller {
 
         try {
             $data = array();
-           
+
             foreach ($settings as $row) {
-               
+
                 if ($row == 'firebase_service_file') {
                     if ($request->hasFile($row)) {
                         $data[] = [
@@ -685,7 +687,7 @@ class SystemSettingsController extends Controller {
     {
         $data = htmlspecialchars_decode($this->cache->getSystemSettings());
         $settings = $this->cache->getSystemSettings();
-     
+
         return view('settings.email_template',compact('settings'));
     }
 
@@ -713,11 +715,11 @@ class SystemSettingsController extends Controller {
         //     // "RECAPTCHA_SITE" => 'required'
         // ]);
 
-        try {            
+        try {
             EnvSet::setKey('RECAPTCHA_SITE_KEY', $request->input('RECAPTCHA_SITE_KEY'));
             EnvSet::setKey('RECAPTCHA_SECRET_KEY', $request->input('RECAPTCHA_SECRET_KEY'));
             // EnvSet::setKey('RECAPTCHA_SITE', $request->input('RECAPTCHA_SITE'));
-            
+
             EnvSet::save();
             ResponseService::successResponse("Data Stored Successfully");
         } catch (Throwable $e) {
@@ -763,11 +765,11 @@ class SystemSettingsController extends Controller {
                 'type' => 'string'
             ]);
 
-    
+
             $this->systemSettings->upsert($OtherSettingsData, ["name"], ["data"]);
             $this->cache->removeSystemCache(config('constants.CACHE.SYSTEM.SETTINGS'));
             ResponseService::successResponse("Data Stored Successfully");
-            
+
         } catch (Throwable $e) {
             ResponseService::logErrorResponse($e, "School Settings Controller -> otherSystemSettings method");
             ResponseService::errorResponse();

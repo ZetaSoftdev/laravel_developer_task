@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "186398ac9af17fab7f09b1f5ea72ff45",
+    "content-hash": "eb998693e8f5b427ebda877d498af598",
     "packages": [
         {
             "name": "awobaz/compoships",
@@ -496,121 +496,6 @@
                 }
             ],
             "time": "2024-09-19T14:15:21+00:00"
-        },
-        {
-            "name": "dacoto/laravel-env-set",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dacoto/laravel-env-set.git",
-                "reference": "a0a7ce173c01ba0fac7899e57182c9c226e5efdc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dacoto/laravel-env-set/zipball/a0a7ce173c01ba0fac7899e57182c9c226e5efdc",
-                "reference": "a0a7ce173c01ba0fac7899e57182c9c226e5efdc",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "^10.8",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "nunomaduro/larastan": "^2.6",
-                "orchestra/testbench": "^8.5",
-                "pestphp/pest": "^2.5",
-                "pestphp/pest-plugin-laravel": "^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "EnvSet": "dacoto\\EnvSet\\Facades\\EnvSet"
-                    },
-                    "providers": [
-                        "dacoto\\EnvSet\\EnvSetServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "dacoto\\EnvSet\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "David Cortés",
-                    "email": "dacoto@dacoto.com"
-                }
-            ],
-            "description": "A .env editor for Laravel",
-            "homepage": "https://dacoto.github.io/laravel-env-set/",
-            "support": {
-                "issues": "https://github.com/dacoto/laravel-env-set/issues",
-                "source": "https://github.com/dacoto/laravel-env-set/tree/1.0.1"
-            },
-            "time": "2023-08-22T11:53:45+00:00"
-        },
-        {
-            "name": "dacoto/laravel-wizard-installer",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dacoto/laravel-wizard-installer.git",
-                "reference": "c502d4f8d31125469783e0ac4bf8fe7da209e742"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dacoto/laravel-wizard-installer/zipball/c502d4f8d31125469783e0ac4bf8fe7da209e742",
-                "reference": "c502d4f8d31125469783e0ac4bf8fe7da209e742",
-                "shasum": ""
-            },
-            "require": {
-                "dacoto/laravel-env-set": "^1.0",
-                "ext-pdo": "*",
-                "illuminate/support": "^10.8",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "nunomaduro/larastan": "^2.6",
-                "orchestra/testbench": "^8.5",
-                "pestphp/pest": "^2.5",
-                "pestphp/pest-plugin-laravel": "^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "dacoto\\LaravelWizardInstaller\\LaravelWizardInstallerServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "dacoto\\LaravelWizardInstaller\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "David Cortés",
-                    "email": "dacoto@dacoto.com"
-                }
-            ],
-            "description": "Laravel wizard installer package",
-            "homepage": "https://dacoto.github.io/laravel-wizard-installer/",
-            "support": {
-                "issues": "https://github.com/dacoto/laravel-wizard-installer/issues",
-                "source": "https://github.com/dacoto/laravel-wizard-installer/tree/1.0.1"
-            },
-            "time": "2024-02-12T21:48:40+00:00"
         },
         {
             "name": "dflydev/dot-access-data",

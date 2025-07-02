@@ -9,7 +9,7 @@
     :root {
     --primary-color: {{ $settings['theme_primary_color'] ?? '#56cc99' }};
     --secondary-color: {{ $settings['theme_secondary_color'] ?? '#215679' }};
-   
+
 }
 </style>
     <div class="content-wrapper">
@@ -25,7 +25,7 @@
                         @if ($upcoming_package)
                             <h3 class="card-title text-danger">{{ __('note') }} : {{ __('if_youve_already_made_payment_for_your_upcoming_plan_changes_or_updates_to_the_current_and_upcoming_plan_will_not_be_permitted') }}</h3>
                         @endif
-                        
+
                         <div class="row pricing-table mt-4">
                             @foreach ($packages as $package)
                                 <div class="col-md-6 col-xl-4 grid-margin stretch-card pricing-card">
@@ -37,7 +37,7 @@
                                                 <span class="package-type-badge prepaid-color">{{ __('prepaid') }}</span>
                                             @endif
                                         @endif
-                                        
+
                                         <div class="text-center pricing-card-head mb-2">
                                             <h3>{{ __($package->name) }}</h3>
                                             <p>{{ $package->description }}</p>
@@ -121,16 +121,16 @@
                                                                 <form action="{{ url('subscriptions/razorpay') }}" class="razorpay-form-{{ $package->id }}" method="POST"> @csrf
                                                                     <input type="hidden" name="package_id" class="package_id_{{ $package->id }}" value="{{ $package->id }}">
                                                                     <input type="hidden" name="amount" class="bill_amount_{{ $package->id }}" value="{{ $package->charges }}">
-        
+
                                                                     <input type="hidden" name="type" class="type_{{ $package->id }}" value="package">
                                                                     <input type="hidden" name="package_type" class="package_type_{{ $package->id }}" value="immediate">
-        
+
                                                                     <input type="hidden" name="razorpay_payment_id" class="razorpay_payment_id" value="">
                                                                     <input type="hidden" name="razorpay_signature" class="razorpay_signature" value="">
                                                                     <input type="hidden" name="razorpay_order_id" class="razorpay_order_id" value="">
-        
+
                                                                     <input type="hidden" name="paymentTransactionId" class="paymentTransactionId" value="">
-        
+
                                                                     <button class="btn btn-theme w-100" id="razorpay-button-{{ $package->id }}">{{ __('update_current_plan') }}</button>
                                                                 </form>
 
@@ -155,7 +155,7 @@
                                                                     <input type="hidden" name="amount" class="bill_amount" value="{{ $package->charges }}">
                                                                     <input type="hidden" name="type" class="type" value="package">
                                                                     <input type="hidden" name="package_type" class="package_type" value="immediate">
-                                                                    
+
                                                                     {{-- <button type="button" class="btn btn-theme w-100 paystack-button">{{ __('get_start') }}</button> --}}
                                                                     <button class="btn btn-theme w-100" id="paystack-button-{{ $package->id }}">{{ __('update_current_plan') }}</button>
                                                                 </form>
@@ -173,7 +173,7 @@
                                                                 </form>
                                                             @else
                                                                 <a href="#" class="btn start-immediate-plan @if ($package->highlight) btn-success @else btn-primary @endif btn-block" data-type="{{ $package->type }}" data-id="{{ $package->id }}">{{ __('update_current_plan') }}</a>
-                                                            @endif                                                   
+                                                            @endif
                                                         </div>
 
                                                         {{-- Set upcoming --}}
@@ -220,13 +220,25 @@
                                                         <input type="hidden" name="package_id" class="package_id_{{ $package->id }}" value="{{ $package->id }}">
                                                         <input type="hidden" name="type" value="package">
                                                         <input type="hidden" name="package_type" value="new">
-                                                        
+
                                                         <button class="btn btn-theme w-100" type="submit">{{ __('get_start') }}</button>
                                                     </form>
                                                 @elseif ($paymentConfiguration && $paymentConfiguration->payment_method == 'Flutterwave' && $package->type == 0)
                                                     <form class="" action="{{ route('subscriptions.store') }}" novalidate="novalidate" data-flutterwave-publishable-key="{{ $paymentConfiguration->api_key ?? null }}" data-success-function="formSuccessFunction" method="post">
                                                         @csrf
                                                         <input type="hidden" name="payment_method" value="flutterwave">
+                                                        <input type="hidden" name="id" id="edit_id">
+                                                        <input type="hidden" name="package_id" class="package_id_{{ $package->id }}" value="{{ $package->id }}">
+                                                        <input type="hidden" name="amount" class="bill_amount_{{ $package->id }}" value="{{ $package->charges }}">
+                                                        <input type="hidden" name="type" class="type_{{ $package->id }}" value="package">
+                                                        <input type="hidden" name="package_type" class="package_type_{{ $package->id }}" value="new">
+
+                                                        <button class="btn btn-theme w-100" type="submit" id="flutterwave-button-{{ $package->id }}">{{ __('get_start') }}</button>
+                                                    </form>
+                                                @elseif ($paymentConfiguration && $paymentConfiguration->payment_method == 'bank_transfer' && $package->type == 0)
+                                                    <form class="" action="{{ route('subscriptions.store') }}" novalidate="novalidate" data-flutterwave-publishable-key="{{ $paymentConfiguration->api_key ?? null }}" data-success-function="formSuccessFunction" method="post">
+                                                        @csrf
+                                                        <input type="hidden" name="payment_method" value="bank_transfer">
                                                         <input type="hidden" name="id" id="edit_id">
                                                         <input type="hidden" name="package_id" class="package_id_{{ $package->id }}" value="{{ $package->id }}">
                                                         <input type="hidden" name="amount" class="bill_amount_{{ $package->id }}" value="{{ $package->charges }}">
@@ -289,7 +301,7 @@
                         subscription_id : $('.subscription_id').val(),
                         feature_id : $('.feature_id').val(),
                         end_date : $('.end_date').val(),
-                        
+
                     },
                     success: function (response) {
                         if (response.data) {
@@ -323,10 +335,10 @@
                 });
                 e.preventDefault();
             }
-        }, 100); 
-        
+        }, 100);
+
     });
-</script> 
+</script>
 @endforeach
 
 
