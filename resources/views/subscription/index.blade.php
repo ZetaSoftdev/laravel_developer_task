@@ -171,6 +171,13 @@
                                                                     {{-- <input class="btn btn-theme payment-status" type="submit" value={{ __('Flutterwave') }} /> --}}
                                                                     <button class="btn btn-theme w-100" id="flutterwave-button-{{ $package->id }}">{{ __('update_current_plan') }}</button>
                                                                 </form>
+                                                            @elseif ($paymentConfiguration && $paymentConfiguration->payment_method == 'bank_transfer' && $package->type == 0)
+                                                                <form action="{{ route('subscriptions.store') }}" class="bank-transfer-form-{{ $package->id }}" method="post">
+                                                                    @csrf
+                                                                    <input type="hidden" name="payment_method" value="bank_transfer">
+                                                                    <input type="hidden" name="package_id" value="{{ $package->id }}">
+                                                                    <button class="btn btn-theme w-100" id="bank-transfer-button-{{ $package->id }}">{{ __('update_current_plan') }}</button>
+                                                                </form>
                                                             @else
                                                                 <a href="#" class="btn start-immediate-plan @if ($package->highlight) btn-success @else btn-primary @endif btn-block" data-type="{{ $package->type }}" data-id="{{ $package->id }}">{{ __('update_current_plan') }}</a>
                                                             @endif                                                   
@@ -234,6 +241,13 @@
                                                         <input type="hidden" name="package_type" class="package_type_{{ $package->id }}" value="new">
 
                                                         <button class="btn btn-theme w-100" type="submit" id="flutterwave-button-{{ $package->id }}">{{ __('get_start') }}</button>
+                                                    </form>
+                                                @elseif ($paymentConfiguration && $paymentConfiguration->payment_method == 'bank_transfer' && $package->type == 0)
+                                                    <form action="{{ route('subscriptions.store') }}" class="bank-transfer-form-{{ $package->id }}" method="post">
+                                                        @csrf
+                                                        <input type="hidden" name="payment_method" value="bank_transfer">
+                                                        <input type="hidden" name="package_id" value="{{ $package->id }}">
+                                                        <button class="btn btn-theme w-100" id="bank-transfer-button-{{ $package->id }}">{{ __('get_start') }}</button>
                                                     </form>
                                                 @else
                                                     <div class="wrapper">

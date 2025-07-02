@@ -30,7 +30,7 @@
                                     <a href="{{ url('users/status') }}">{{ __('click here') }}.</a>
                                 </li>
 
-                                @if ($prepiad_upcoming_plan && $prepiad_upcoming_plan->package->type == 0 && !$check_payment)
+                                @if ($prepiad_upcoming_plan && $prepiad_upcoming_plan->package && $prepiad_upcoming_plan->package->type == 0 && !$check_payment)
                                     
                                     @if ($paymentConfiguration && $paymentConfiguration->payment_method == 'Stripe')
                                         <li class="mt-2">

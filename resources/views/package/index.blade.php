@@ -67,7 +67,7 @@
                                         <th scope="col" data-field="no">{{ __('no.') }}</th>
                                         <th scope="col" data-field="name">{{ __('name') }}</th>
                                         <th scope="col" data-field="description">{{ __('description') }}</th>
-                                        <th scope="col" data-field="status" data-formatter="packageTypeFormatter">{{ __('type') }}</th>
+                                        <th scope="col" data-field="type" data-formatter="packageTypeFormatter">{{ __('type') }}</th>
                                         <th scope="col" data-field="status" data-formatter="yesAndNoStatusFormatter">{{ __('published') }}</th>
                                         <th scope="col" data-field="highlight" data-formatter="yesAndNoStatusFormatter">{{ __('highlight') }}</th>
                                         <th scope="col" data-field="days">{{ __('days') }}</th>

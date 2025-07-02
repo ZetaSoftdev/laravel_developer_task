@@ -68,10 +68,18 @@ function packageFeatureFormatter(value, row) {
 }
 
 function yesAndNoStatusFormatter(value) {
+    // Handle undefined/null/empty values
+    if (value === undefined || value === null || value === '') {
+        return "<span class='badge badge-danger'>" + (window.trans && window.trans["No"] ? window.trans["No"] : "No") + "</span>";
+    }
+    
+    // Ensure value is properly treated as a boolean
+    value = parseInt(value) === 1 || value === true;
+    
     if (value) {
-        return "<span class='badge badge-success'>" + window.trans["Yes"] + "</span>";
+        return "<span class='badge badge-success'>" + (window.trans && window.trans["Yes"] ? window.trans["Yes"] : "Yes") + "</span>";
     } else {
-        return "<span class='badge badge-danger'>" + window.trans["No"] + "</span>";
+        return "<span class='badge badge-danger'>" + (window.trans && window.trans["No"] ? window.trans["No"] : "No") + "</span>";
     }
 }
 
@@ -87,20 +95,31 @@ function actionColumnFormatter(value, row, index)
 
 
 function packageTypeFormatter(value, row) {
-    if (typeof row.type !== 'undefined') {
-        if (row.type) {
-            return "<span class='badge badge-primary'>" + window.trans["postpaid"] + "</span>";
-        } else {
-            return "<span class='badge badge-info'>" + window.trans["prepaid"] + "</span>";
-        }    
-    } else {
-        if (row.subscription.package_type) {
-            return "<span class='badge badge-primary'>" + window.trans["postpaid"] + "</span>";
-        } else {
-            return "<span class='badge badge-info'>" + window.trans["prepaid"] + "</span>";
-        }
+    // Ensure row exists
+    if (!row) {
+        return "<span class='badge badge-info'>" + (window.trans && window.trans["prepaid"] ? window.trans["prepaid"] : "Prepaid") + "</span>";
     }
     
+    // First check if type is directly defined in the row
+    if (row.hasOwnProperty('type') && row.type !== undefined && row.type !== null && row.type !== '') {
+        if (parseInt(row.type) === 1) {
+            return "<span class='badge badge-primary'>" + (window.trans && window.trans["postpaid"] ? window.trans["postpaid"] : "Postpaid") + "</span>";
+        } else {
+            return "<span class='badge badge-info'>" + (window.trans && window.trans["prepaid"] ? window.trans["prepaid"] : "Prepaid") + "</span>";
+        }
+    } 
+    // Then check if it's in subscription
+    else if (row.subscription && row.subscription.hasOwnProperty('package_type') && row.subscription.package_type !== undefined && row.subscription.package_type !== null) {
+        if (parseInt(row.subscription.package_type) === 1) {
+            return "<span class='badge badge-primary'>" + (window.trans && window.trans["postpaid"] ? window.trans["postpaid"] : "Postpaid") + "</span>";
+        } else {
+            return "<span class='badge badge-info'>" + (window.trans && window.trans["prepaid"] ? window.trans["prepaid"] : "Prepaid") + "</span>";
+        }
+    }
+    // Default to prepaid if not found
+    else {
+        return "<span class='badge badge-info'>" + (window.trans && window.trans["prepaid"] ? window.trans["prepaid"] : "Prepaid") + "</span>";
+    }
 }
 
 function descriptionFormatter(value, row) {

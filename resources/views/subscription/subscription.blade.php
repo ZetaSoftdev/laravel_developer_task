@@ -165,9 +165,11 @@
                                 <h4 class="card-title">{{ __('features') }}</h4>
 
                                 <ul class="list-unstyled">
-                                    @foreach ($upcoming_package->package->package_feature as $feature)
-                                        <li><i class="fa fa-check check mr-2"></i>{{ __($feature->feature->name) }}</li>
-                                    @endforeach
+                                    @if($upcoming_package->package)
+                                        @foreach ($upcoming_package->package->package_feature as $feature)
+                                            <li><i class="fa fa-check check mr-2"></i>{{ __($feature->feature->name) }}</li>
+                                        @endforeach
+                                    @endif
                                 </ul>
                             </div>
 
@@ -530,6 +532,15 @@
                                             <input type="hidden" name="payment_method" value="flutterwave">
                                             <input type="hidden" name="id" id="edit_id">
                                             <input class="btn btn-theme payment-status" type="submit" value={{ __('Pay_with_Flutterwave') }} />
+                                        </form>
+                                    @elseif ($paymentConfiguration && $paymentConfiguration->payment_method == 'bank_transfer')
+                                        <form action="{{ route('subscriptions.store') }}" class="bank-transfer-form" method="post">
+                                            @csrf
+                                            <input type="hidden" name="payment_method" value="bank_transfer">
+                                            @isset($package_id)
+                                                <input type="hidden" name="package_id" value="{{ $package_id }}">
+                                            @endisset
+                                            <button class="btn btn-theme w-100" id="bank-transfer-button">{{ __('Pay With Bank Transfer') }}</button>
                                         </form>
                                     @endif
                                     

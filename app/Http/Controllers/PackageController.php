@@ -86,6 +86,7 @@ class PackageController extends Controller
             $packageData = [
                 ...$request->all(),
                 'highlight'                  => $request->highlight ?? 0,
+                'days'                       => $request->days,
             ];
 
             // Create package
@@ -170,6 +171,37 @@ class PackageController extends Controller
             $tempRow = $row->toArray();
             $tempRow['no'] = $no++;
             $tempRow['used_by'] = $row->subscription_count;
+            
+            // Ensure days field is correctly populated
+            $tempRow['days'] = $row->days ?? 0;
+            
+            // Ensure highlight field is properly populated
+            $tempRow['highlight'] = $row->highlight ?? 0;
+            
+            // Ensure type field is defined
+            $tempRow['type'] = $row->type ?? 0;
+            
+            // Ensure charges field is defined
+            $tempRow['charges'] = $row->charges ?? 0;
+            
+            // Ensure student/staff limits are defined
+            $tempRow['no_of_students'] = $row->no_of_students ?? 0;
+            $tempRow['no_of_staffs'] = $row->no_of_staffs ?? 0;
+            
+            // Ensure student/staff charges are defined
+            $tempRow['student_charge'] = $row->student_charge ?? 0;
+            $tempRow['staff_charge'] = $row->staff_charge ?? 0;
+            
+            // Ensure status field is defined
+            $tempRow['status'] = $row->status ?? 0;
+            
+            // Add final_amount calculation for display
+            if ($row->type == 0) { // Prepaid
+                $tempRow['final_amount'] = $row->charges ?? 0;
+            } else { // Postpaid
+                $tempRow['final_amount'] = 0; // Will be calculated based on usage
+            }
+            
             $tempRow['operate'] = $operate;
             $rows[] = $tempRow;
         }
@@ -203,8 +235,6 @@ class PackageController extends Controller
         ], [
             'feature_id.required'   => trans('please_select_at_least_one_feature'),
         ]);
-
-
 
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
@@ -240,6 +270,7 @@ class PackageController extends Controller
             $packageData = [
                 ...$request->all(),
                 'highlight'                  => $request->highlight ?? 0,
+                'days'                       => $request->days,
             ];
 
             $package = $this->package->update($id, $packageData);

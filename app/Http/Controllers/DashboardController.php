@@ -136,7 +136,7 @@ class DashboardController extends Controller {
                     }
 
                     // Please verify if you have already made the payment.
-                    if ($prepiad_upcoming_plan->package->type == 0 && $subscription->id != $prepiad_upcoming_plan->id) {
+                    if ($prepiad_upcoming_plan->package && $prepiad_upcoming_plan->package->type == 0 && $subscription->id != $prepiad_upcoming_plan->id) {
                         $check_payment = $this->subscription->builder()->where('id',$prepiad_upcoming_plan->id)->whereHas('subscription_bill.transaction', function($q) {
                             $q->where('payment_status',"succeed");
                         })->first();

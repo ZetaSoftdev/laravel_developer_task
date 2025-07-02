@@ -72,6 +72,11 @@ class SubscriptionService
         if (!$school_id) {
             $school_id = Auth::user()->school_id;
         }
+        
+        // Ensure school_id is integer, not object
+        if (is_object($school_id) || is_array($school_id)) {
+            $school_id = Auth::user()->school_id;
+        }
         if ($package->is_trial) {
             $end_date = Carbon::now()->addDays(($settings['trial_days']))->format('Y-m-d');
         } else {
@@ -357,7 +362,6 @@ class SubscriptionService
         } catch (\Stripe\Exception\ApiErrorException $e) {
             Log::error('Stripe API Error: ' . $e->getMessage());
             Log::error('Stripe API Error Code: ' . $e->getStripeCode());
-            Log::error('Stripe API Error Type: ' . $e->getStripeType());
             return redirect()->back()->with('error', trans('Stripe payment error: ') . $e->getMessage());
         } catch (\Exception $e) {
             Log::error('General Error in Stripe Payment: ' . $e->getMessage());
@@ -848,6 +852,104 @@ class SubscriptionService
         }
     }
 
+
+    // Bank Transfer / Manual Payment 
+    public function bank_transfer_payment($subscriptionBill_id = null, $package_id = null, $type = null, $subscription_id = null, $isCurrentPlan = null)
+    {
+        try {
+            // Get bank details for manual payment
+            DB::setDefaultConnection('mysql');
+            $bank_details = PaymentConfiguration::where('payment_method', 'bank_transfer')->where('status', 1)->first();
+            DB::setDefaultConnection('school');
+
+            if (!$bank_details) {
+                return redirect()->back()->with('error', 'Bank transfer payment method is not configured. Please contact administrator.');
+            }
+
+            $name = '';
+            $amount = 0;
+            $package = null;
+            $newSubscription = null;
+            $transaction = null;
+
+            if ($subscriptionBill_id) {
+                $subscriptionBill = $this->subscriptionBill->findById($subscriptionBill_id);
+                $name = $subscriptionBill->subscription->name;
+                $amount = $subscriptionBill->amount;
+            }
+
+            if ($package_id) {
+                $package = $this->package->findById($package_id);
+                $name = $package->name;
+                $amount = $package->charges;
+                
+                // Create subscription based on package type
+                $subscription = $this->active_subscription(Auth::user()->school_id);
+
+                // Create or update subscription
+                if ($subscription) {
+                    // Check trial package
+                    if ($subscription->package && $subscription->package->is_trial == 1) {
+                        $newSubscription = $this->createSubscription($package->id, Auth::user()->school_id);
+                    } else {
+                        $newSubscription = $this->createSubscription($package->id, Auth::user()->school_id);
+                    }
+                } else {
+                    // For new Subscription
+                    $newSubscription = $this->createSubscription($package->id, Auth::user()->school_id);
+                }
+
+                // Create pending payment transaction
+                DB::setDefaultConnection('mysql');
+                $transaction = $this->paymentTransaction->create([
+                    'user_id'           => Auth::user()->id,
+                    'school_id'         => Auth::user()->school_id,
+                    'amount'            => $amount,
+                    'payment_gateway'   => 'bank_transfer',
+                    'order_id'          => 'manual-' . time() . '-' . Auth::user()->id,
+                    'payment_status'    => 'pending',
+                ]);
+
+                // Refresh the transaction to ensure we have the latest data
+                $transaction = $transaction->fresh();
+                
+                Log::info('Created transaction:', ['id' => $transaction->id, 'amount' => $transaction->amount, 'order_id' => $transaction->order_id]);
+
+                // Create subscription bill (only for prepaid packages)
+                if ($package->type == 0) { // Only for prepaid packages
+                    // For manual payments, create a simple bill with the package amount
+                    DB::setDefaultConnection('mysql');
+                    $subscriptionBillData = [
+                        'subscription_id' => $newSubscription->id,
+                        'amount'          => $package->charges, // Use package charges directly
+                        'total_student'   => $package->no_of_students,
+                        'total_staff'     => $package->no_of_staffs,
+                        'due_date'        => Carbon::now()->addDays(7)->format('Y-m-d'),
+                        'school_id'       => $newSubscription->school_id,
+                        'payment_transaction_id' => $transaction->id
+                    ];
+                    
+                    $subscriptionBill = $this->subscriptionBill->create($subscriptionBillData);
+                    Log::info('Created subscription bill:', ['id' => $subscriptionBill->id, 'amount' => $subscriptionBill->amount]);
+                }
+                DB::setDefaultConnection('school');
+            }
+
+            // Ensure transaction is passed correctly to the view
+            if (!$transaction || !$transaction->id) {
+                Log::error('Transaction not created properly', ['transaction' => $transaction]);
+                return redirect()->back()->with('error', 'Failed to create payment transaction. Please try again.');
+            }
+
+            Log::info('Passing transaction to view', ['transaction_id' => $transaction->id, 'amount' => $transaction->amount]);
+            
+            return view('payment.manual_submission', compact('bank_details', 'transaction', 'package', 'newSubscription'));
+            
+        } catch (\Exception $e) {
+            Log::error('Bank Transfer Payment Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', trans('server_not_responding'));
+        }
+    }
 
     /**
      * @param string|float $currency
