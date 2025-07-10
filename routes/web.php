@@ -70,6 +70,8 @@ use App\Http\Controllers\WizardSettingsController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ManualPaymentController;
 use App\Http\Controllers\Admin\ManualPaymentController as AdminManualPaymentController;
+use App\Http\Controllers\ZoomController;
+use App\Http\Controllers\ZoomSettingsController;
 use App\Models\PaymentTransaction;
 use App\Models\Subscription;
 use App\Models\SubscriptionBill;
@@ -79,11 +81,54 @@ use Carbon\Carbon;
 use Illuminate\Queue\Connectors\DatabaseConnector;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Http\Request;
 
 
+// // Temporary route for debugging PHP configuration
+// Route::get('/phpinfo', function() {
+//     phpinfo();
+// })->name('phpinfo');
+
+
+
+// Test file upload routes - outside auth middleware
+// Route::get('/test-file-upload', function() {
+//     return view('test-upload');
+// })->name('test-file-upload');
+
+// Route::post('/test-file-upload', function(Request $request) {
+//     if($request->hasFile('test_file')) {
+//         try {
+//             $file = $request->file('test_file');
+//             $path = $file->store('test-uploads', 'public');
+//             return [
+//                 'success' => true,
+//                 'message' => 'File uploaded successfully',
+//                 'path' => $path,
+//                 'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+//                 'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
+//             ];
+//         } catch(\Exception $e) {
+//             return [
+//                 'success' => false,
+//                 'message' => $e->getMessage(),
+//                 'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+//                 'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
+//             ];
+//         }
+//     }
+    
+//     return [
+//         'success' => false,
+//         'message' => 'No file provided',
+//         'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+//         'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
+//     ];
+// })->name('test-file-upload.post');
 
 /*
 |--------------------------------------------------------------------------
@@ -840,6 +885,13 @@ Route::group(['middleware' => ['Role', 'checkSchoolStatus', 'status','SwitchData
         });
 
         Route::resource('payroll-setting', PayrollSettingController::class);
+        
+        // Zoom Integration Routes
+        Route::get('zoom-settings', [ZoomSettingsController::class, 'index'])->name('zoom-settings.index');
+        Route::post('zoom-settings', [ZoomSettingsController::class, 'store'])->name('zoom-settings.store');
+        
+        Route::get('zoom/attendance/{id}', [ZoomController::class, 'attendance'])->name('zoom.attendance');
+        Route::resource('zoom', ZoomController::class);
     });
 });
 

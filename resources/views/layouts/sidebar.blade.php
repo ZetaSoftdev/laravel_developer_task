@@ -445,6 +445,35 @@
             </li>
         @endcanany
 
+        {{-- Zoom Online Classes --}}
+        @canany(['zoom-class-list', 'zoom-settings'])
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="collapse" href="#zoom-online-classes-menu" aria-expanded="false" aria-controls="zoom-online-classes-menu" data-access="@hasFeatureAccess('Zoom Online Classes')">
+                    <i class="fa fa-video-camera menu-icon"></i>
+                    <span class="menu-title">{{ __('Zoom Online Classes') }}</span>
+                    <i class="menu-arrow"></i>
+                </a>
+                <div class="collapse" id="zoom-online-classes-menu">
+                    <ul class="nav flex-column sub-menu">
+                        @can('zoom-class-list')
+                            <li class="nav-item">
+                                <a href="{{ route('zoom.index') }}" class="nav-link">
+                                    {{ __('Online Classes') }}
+                                </a>
+                            </li>
+                        @endcan
+                        @can('zoom-settings')
+                            <li class="nav-item">
+                                <a href="{{ route('zoom-settings.index') }}" class="nav-link">
+                                    {{ __('Zoom Settings') }}
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </div>
+            </li>
+        @endcanany
+
         {{-- Fees --}}
 
         @canany(['fees-list', 'fees-type-list', 'fees-classes-list', 'fees-paid'])

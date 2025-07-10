@@ -43,6 +43,7 @@
 <script src="{{ asset('/assets/js/custom/validate.js') }}"></script>
 <script src="{{ asset('/assets/js/jquery-additional-methods.min.js')}}"></script>
 <script src="{{ asset('/assets/js/custom/function.js') }}"></script>
+<script src="{{ asset('/assets/js/custom/menu-access.js') }}"></script>
 <script src="{{ asset('/assets/js/custom/common.js') }}"></script>
 <script src="{{ asset('/assets/js/custom/custom.js') }}"></script>
 <script src="{{ asset('/assets/js/custom/bootstrap-table/actionEvents.js') }}"></script>

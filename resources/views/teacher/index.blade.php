@@ -814,8 +814,49 @@
                 });
             });
         });
-
-        
-
+    </script>
+    <script>
+        // Debug script for teacher form
+        $(document).ready(function() {
+            console.log('Debug script loaded for teacher form');
+            
+            // Direct form submission without using the common.js handler
+            $('#formdata').off('submit').on('submit', function(e) {
+                e.preventDefault();
+                console.log('Form submission intercepted');
+                
+                var formData = new FormData(this);
+                var url = $(this).attr('action');
+                var submitBtn = $(this).find(':submit');
+                var originalBtnText = submitBtn.val();
+                
+                submitBtn.val('Please Wait...').attr('disabled', true);
+                
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        console.log('Success response:', response);
+                        showSuccessToast(response.message);
+                        $('#formdata')[0].reset();
+                        $('#table_list').bootstrapTable('refresh');
+                    },
+                    error: function(xhr) {
+                        console.log('Error response:', xhr);
+                        if (xhr.responseJSON) {
+                            showErrorToast(xhr.responseJSON.message);
+                        } else {
+                            showErrorToast('An error occurred during form submission');
+                        }
+                    },
+                    complete: function() {
+                        submitBtn.val(originalBtnText).attr('disabled', false);
+                    }
+                });
+            });
+        });
     </script>
 @endsection

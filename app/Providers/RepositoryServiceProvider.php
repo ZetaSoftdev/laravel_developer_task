@@ -294,7 +294,9 @@ class RepositoryServiceProvider extends ServiceProvider {
         $this->app->bind(AssignmentCommonInterface::class, AssignmentCommonRepository::class);
         $this->app->bind(OnlineExamCommonInterface::class, OnlineExamCommonRepository::class);
         $this->app->bind(OnlineExamQuestionCommonInterface::class, OnlineExamQuestionCommonRepository::class);
-        
+        $this->app->bind(\App\Repositories\ZoomSetting\ZoomSettingInterface::class, \App\Repositories\ZoomSetting\ZoomSettingRepository::class);
+        $this->app->bind(\App\Repositories\ZoomOnlineClass\ZoomOnlineClassInterface::class, \App\Repositories\ZoomOnlineClass\ZoomOnlineClassRepository::class);
+        $this->app->bind(\App\Repositories\ZoomAttendance\ZoomAttendanceInterface::class, \App\Repositories\ZoomAttendance\ZoomAttendanceRepository::class);
     }
 
     /**

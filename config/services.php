@@ -33,6 +33,13 @@ return [
     'recaptcha' => [
         'key' => env('RECAPTCHA_SITE_KEY'),
         'secret' => env('RECAPTCHA_SECRET_KEY'),
-    ]
+    ],
+
+    'zoom' => [
+        'client_id' => env('ZOOM_CLIENT_ID'),
+        'client_secret' => env('ZOOM_CLIENT_SECRET'),
+        'account_id' => env('ZOOM_ACCOUNT_ID'),
+    ],
+
 
 ];

@@ -71,13 +71,14 @@ class TeacherController extends Controller {
 
     public function store(Request $request) {
         ResponseService::noAnyPermissionThenSendJson(['teacher-create', 'teacher-edit']);
+        
         $request->validate([
             'first_name'        => 'required',
             'last_name'         => 'required',
             'gender'            => 'required',
             'email'             => 'required|email|unique:users,email',
             'mobile'            => 'required|numeric|digits_between:1,16',
-            'dob'               => 'required|date|unique:users,email',
+            'dob'               => 'required|date',
             'qualification'     => 'required',
             'current_address'   => 'required',
             'permanent_address' => 'required',
@@ -277,6 +278,7 @@ class TeacherController extends Controller {
     public function update(Request $request, $id) {
         // ResponseService::noFeatureThenSendJson('Teacher Management');
         ResponseService::noPermissionThenSendJson('teacher-edit');
+        
         $validator = Validator::make($request->all(), [
             'first_name'        => 'required',
             'last_name'         => 'required',
