@@ -265,7 +265,7 @@ class AddonController extends Controller {
                 ResponseService::errorResponse('please_choose_a_plan_before_proceeding');
             }
             // Not Allowed in free trial subscription package
-            if ($subscription->package->is_trial == 1) {
+            if ($subscription->package && $subscription->package->is_trial == 1) {
                 ResponseService::errorResponse('Restricted in the free trial subscription');
             }
 

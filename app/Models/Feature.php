@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Feature extends Model
 {
-    use HasFactory;
-    protected $fillable = ['name','is_default','status','required_vps'];
+    use HasFactory, SoftDeletes;
     protected $connection = 'mysql';
+    protected $fillable = ['name', 'is_default', 'status', 'required_vps'];
 
     protected $appends = ['short_name'];
 

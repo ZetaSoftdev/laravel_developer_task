@@ -68,6 +68,8 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WebSettingsController;
 use App\Http\Controllers\WizardSettingsController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ManualPaymentController;
+use App\Http\Controllers\Admin\ManualPaymentController as AdminManualPaymentController;
 use App\Models\PaymentTransaction;
 use App\Models\Subscription;
 use App\Models\SubscriptionBill;
@@ -1026,3 +1028,24 @@ Route::get('demo-tokens', static function () {
     }
 });
 
+Route::post('manual-payment/store', [ManualPaymentController::class, 'store'])->name('manual-payment.store');
+
+// Debug route for file upload issues (remove in production)
+Route::get('/debug-upload', function () {
+    return response()->json([
+        'upload_max_filesize' => ini_get('upload_max_filesize'),
+        'post_max_size' => ini_get('post_max_size'),
+        'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+        'sys_get_temp_dir' => sys_get_temp_dir(),
+        'is_writable_temp' => is_writable(sys_get_temp_dir()),
+        'storage_path_writable' => is_writable(storage_path()),
+        'public_storage_writable' => is_writable(storage_path('app/public')),
+        'receipts_dir_writable' => is_writable(storage_path('app/public/receipts')),
+        'php_version' => phpversion(),
+    ]);
+});
+
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'role:Super Admin']], function () {
+    Route::get('manual-payments', [AdminManualPaymentController::class, 'index'])->name('admin.manual-payments.index');
+    Route::put('manual-payments/{id}', [AdminManualPaymentController::class, 'update'])->name('admin.manual-payments.update');
+});

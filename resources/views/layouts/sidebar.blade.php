@@ -591,14 +591,22 @@
             <li class="nav-item">
                 <a href="{{ url('subscriptions/report') }}" class="nav-link">
                     <i class="fa fa-puzzle-piece menu-icon"></i>
-                    <span class="menu-title">{{ __('subscription') }}</span>
+                    <span class="menu-title">Subscription Report</span>
                 </a>
             </li>
 
             <li class="nav-item">
                 <a href="{{ url('subscriptions/transactions') }}" class="nav-link">
                     <i class="fa fa-money menu-icon"></i>
-                    <span class="menu-title">{{ __('subscription_transaction') }}</span>
+                    <span class="menu-title">Subscription Transactions</span>
+                </a>
+            </li>
+
+            {{-- Manual Payment Verification --}}
+            <li class="nav-item">
+                <a href="{{ route('admin.manual-payments.index') }}" class="nav-link">
+                    <i class="fa fa-credit-card menu-icon"></i>
+                    <span class="menu-title">Manual Payment Verification</span>
                 </a>
             </li>
         @endcan
