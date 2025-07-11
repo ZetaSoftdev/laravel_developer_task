@@ -31,7 +31,14 @@ class InstallationSeeder extends Seeder {
         Artisan::call('migrate:school');
         Artisan::call('db:seed --class=SchoolInstallationSeeder');
         //clear cache
-        Artisan::call('view:clear');
+        try {
+            if (!file_exists(storage_path('framework/views'))) {
+                \Illuminate\Support\Facades\File::ensureDirectoryExists(storage_path('framework/views'));
+            }
+            Artisan::call('view:clear');
+        } catch (\Throwable $e) {
+            // Ignore view clear errors in environments where the compiled directory doesn't exist
+        }
         Artisan::call('route:clear');
         Artisan::call('config:clear');
         Artisan::call('cache:clear');
