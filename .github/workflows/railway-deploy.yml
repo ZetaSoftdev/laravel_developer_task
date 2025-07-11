@@ -54,6 +54,15 @@ jobs:
       - name: Build Frontend Assets
         run: npm run prod
 
+      - name: Cache Laravel Config
+        run: php artisan config:cache
+
+      - name: Cache Laravel Routes
+        run: php artisan route:cache
+
+      - name: Cache Laravel Views
+        run: php artisan view:cache
+
       - name: Deploy to Railway
         uses: railwayapp/cli-action@v1
         with:
