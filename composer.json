@@ -24,7 +24,7 @@
         "dacoto/laravel-wizard-installer": "*",
         "doctrine/dbal": "^3.7",
         "google/apiclient": "^2.16",
-        "guzzlehttp/guzzle": "^7.2",
+        "guzzlehttp/guzzle": "^7.9",
         "intervention/image": "^2.7",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.2",
