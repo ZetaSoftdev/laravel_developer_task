@@ -13,7 +13,7 @@ class InstallFolderController extends Controller
     public function __invoke(): View|Factory|Application|RedirectResponse
     {
         if (!(new InstallServerController())->check()) {
-            return redirect()->route('LaravelWizardInstaller::install.server');
+return redirect()->route('install.server');
         }
 
         return view('installer::steps.folders', [

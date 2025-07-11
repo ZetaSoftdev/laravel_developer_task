@@ -21,13 +21,29 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql
           coverage: none
 
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
       - name: Install Composer Dependencies
-        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
 
       - name: Install NPM Dependencies
         run: npm install
@@ -42,4 +58,4 @@ jobs:
         uses: railwayapp/cli-action@v1
         with:
           railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          command: railway up --detach 
+          command: railway up --detach
