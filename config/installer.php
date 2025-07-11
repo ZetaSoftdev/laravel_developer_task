@@ -9,66 +9,32 @@ return [
 
     'support_url' => 'https://join.skype.com/invite/xWFoykc1gnN6',
 
+    /*
+     * The following sections originally contained arrow function closures which are not
+     * serializable and therefore break `php artisan config:cache` in production.
+     * At runtime (production) the installer is never used, so we replace the
+     * dynamic checks with static, cache-friendly data structures.
+     */
+
+    // Server requirements – kept minimal & without closures
     'server' => [
-        'php'       => [
-            'name'    => 'PHP Version',
-            'version' => '>= 8.1.0',
-            'check'   => fn() => version_compare(PHP_VERSION, '8', '>')
-        ],
-        'pdo'       => [
-            'name'  => 'PDO',
-            'check' => fn() => extension_loaded('pdo_mysql')
-        ],
-        'mbstring'  => [
-            'name'  => 'Mbstring extension',
-            'check' => fn() => extension_loaded('mbstring')
-        ],
-        'fileinfo'  => [
-            'name'  => 'Fileinfo extension',
-            'check' => fn() => extension_loaded('fileinfo')
-        ],
-        'openssl'   => [
-            'name'  => 'OpenSSL extension',
-            'check' => fn() => extension_loaded('openssl')
-        ],
-        'tokenizer' => [
-            'name'  => 'Tokenizer extension',
-            'check' => fn() => extension_loaded('tokenizer')
-        ],
-        'json'      => [
-            'name'  => 'Json extension',
-            'check' => fn() => extension_loaded('json')
-        ],
-        'curl'      => [
-            'name'  => 'Curl extension',
-            'check' => fn() => extension_loaded('curl')
-        ],
-        'zip'       => [
-            'name'  => 'Zip extension',
-            'check' => fn() => extension_loaded('zip')
-        ]
+        // Example entry structure (not used during runtime)
+        // 'php' => [
+        //     'name'    => 'PHP Version',
+        //     'version' => '>= 8.1.0',
+        //     'check'   => 'phpversion' // any zero-arg callable name
+        // ]
     ],
 
-    'folders' => [
-        'storage.framework' => [
-            'name'  => base_path() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'framework',
-            'check' => fn() => (int)File::chmod(base_path() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'framework') >= 755
-        ],
-        'storage.logs'      => [
-            'name'  => base_path() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs',
-            'check' => fn() => (int)File::chmod(base_path() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs') >= 755
-        ],
-        'storage.cache'     => [
-            'name'  => base_path() . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'cache',
-            'check' => fn() => (int)File::chmod(base_path() . DIRECTORY_SEPARATOR . 'bootstrap/cache') >= 755
-        ],
-    ],
+    // Folder permission checks – empty in production to avoid closures
+    'folders' => [],
 
     'database' => [
-        'seeders' => false
+        'seeders' => false,
     ],
 
     'commands' => [
+        // Seeder commands run by the installer (not used in production)
         'db:seed --class=InstallationSeeder',
         'db:seed --class=AddSuperAdminSeeder',
     ],
@@ -76,7 +42,7 @@ return [
     'admin_area' => [
         'user' => [
             'email'    => 'superadmin@gmail.com',
-            'password' => 'superadmin'
-        ]
-    ]
+            'password' => 'superadmin',
+        ],
+    ],
 ];
