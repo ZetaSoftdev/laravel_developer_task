@@ -4,6 +4,7 @@ use App\Models\Grade;
 use App\Repositories\Grades\GradesInterface;
 use App\Repositories\SchoolSetting\SchoolSettingInterface;
 use App\Services\CachingService;
+use Illuminate\Support\Facades\Auth;
 use Intervention\Image\Facades\Image;
 
 //function getSystemSettings($name = '') {
@@ -195,13 +196,17 @@ function resizeImage($image) {
 
 function sessionYearWiseMonth()
 {
-    $monthArray = array( '1' => __('January'), '2' => __('February'), '3' => __('March'), '4' => __('April'), '5' => __('May'), '6' => __('June'), '7' => __('July'), '8' => __('August'), '9' => __('September'), '10' => __('October'), '11' => __('November'), '12' => __('December') );
-    $currentSessionYear = app(CachingService::class)->getDefaultSessionYear();
-    $startingMonth = date('m',strtotime($currentSessionYear->start_date));
     $months = array();
-    for ($i = $startingMonth - 1; $i < $startingMonth + count($monthArray); $i++) {
-        $index = $i % count($monthArray) + 1;
-        $months[$index] = $monthArray[$index];
+    if (Auth::check()) {
+        $monthArray = array( '1' => __('January'), '2' => __('February'), '3' => __('March'), '4' => __('April'), '5' => __('May'), '6' => __('June'), '7' => __('July'), '8' => __('August'), '9' => __('September'), '10' => __('October'), '11' => __('November'), '12' => __('December') );
+        $currentSessionYear = app(CachingService::class)->getDefaultSessionYear();
+        if ($currentSessionYear) {
+            $startingMonth = date('m',strtotime($currentSessionYear->start_date));
+            for ($i = $startingMonth - 1; $i < $startingMonth + count($monthArray); $i++) {
+                $index = $i % count($monthArray) + 1;
+                $months[$index] = $monthArray[$index];
+            }
+        }
     }
     return $months;
 }
