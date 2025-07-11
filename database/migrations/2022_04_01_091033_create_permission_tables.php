@@ -50,27 +50,26 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['model_has_permissions'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
-            $table->unsignedBigInteger(config('permission.column_names.permission_foreign_key'));
+            $table->unsignedBigInteger('permission_id');
 
             $table->string('model_type');
             $table->unsignedBigInteger($columnNames['model_morph_key']);
             $table->index([$columnNames['model_morph_key'], 'model_type'], 'model_has_permissions_model_id_model_type_index');
 
-            $table->foreign(config('permission.column_names.permission_foreign_key'))
-                ->references('id') // permission id
+            $table->foreign('permission_id')
+                ->references('id')
                 ->on($tableNames['permissions'])
                 ->onDelete('cascade');
             if ($teams) {
                 $table->unsignedBigInteger($columnNames['team_foreign_key']);
                 $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
 
-                $table->primary([$columnNames['team_foreign_key'], config('permission.column_names.permission_foreign_key'), $columnNames['model_morph_key'], 'model_type'],
+                $table->primary([$columnNames['team_foreign_key'], 'permission_id', $columnNames['model_morph_key'], 'model_type'],
                     'model_has_permissions_permission_model_type_primary');
             } else {
-                $table->primary([config('permission.column_names.permission_foreign_key'), $columnNames['model_morph_key'], 'model_type'],
+                $table->primary(['permission_id', $columnNames['model_morph_key'], 'model_type'],
                     'model_has_permissions_permission_model_type_primary');
             }
-
         });
 
         Schema::create($tableNames['model_has_roles'], function (Blueprint $table) use ($tableNames, $columnNames, $teams) {
@@ -97,20 +96,20 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['role_has_permissions'], function (Blueprint $table) use ($tableNames) {
-            $table->unsignedBigInteger(config('permission.column_names.permission_foreign_key'));
-            $table->unsignedBigInteger(config('permission.column_names.role_foreign_key'));
+            $table->unsignedBigInteger('permission_id');
+            $table->unsignedBigInteger('role_id');
 
-            $table->foreign(config('permission.column_names.permission_foreign_key'))
-                ->references('id') // permission id
+            $table->foreign('permission_id')
+                ->references('id')
                 ->on($tableNames['permissions'])
                 ->onDelete('cascade');
 
-            $table->foreign(config('permission.column_names.role_foreign_key'))
-                ->references('id') // role id
+            $table->foreign('role_id')
+                ->references('id')
                 ->on($tableNames['roles'])
                 ->onDelete('cascade');
 
-            $table->primary([config('permission.column_names.permission_foreign_key'), config('permission.column_names.role_foreign_key')], 'role_has_permissions_permission_id_role_id_primary');
+            $table->primary(['permission_id', 'role_id'], 'role_has_permissions_permission_id_role_id_primary');
         });
 
         app('cache')
