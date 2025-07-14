@@ -28,7 +28,7 @@ class SchoolDataService {
         DB::connection('school')->reconnect();
         DB::setDefaultConnection('school');
 
-        $school = New School();
+        $school = School::findOrNew($schoolData->id);
         $school->id = $schoolData->id;
         $school->name = $schoolData->name;
         $school->address = $schoolData->address;
@@ -203,6 +203,17 @@ class SchoolDataService {
 
         );
         SchoolSetting::upsert($schoolSettingData, ["name", "school_id"], ["data", "type"]);
+        
+        // Create default Zoom settings for the school
+        \App\Models\ZoomSetting::firstOrCreate(
+            ['school_id' => $schoolData->id],
+            [
+                'is_active' => 1,
+                'api_key' => null,
+                'secret_key' => null,
+                'webhook_secret' => null
+            ]
+        );
     }
     
     public function createPreSetupRole($schoolData) {
@@ -255,8 +266,11 @@ class SchoolDataService {
             DB::statement("CREATE DATABASE {$database_name}");
         }
 
-        $schoolData->database_name = $database_name;
-        $schoolData->save();
+        $school = School::find($schoolData->id);
+        if ($school) {
+            $school->database_name = $database_name;
+            $school->save();
+        }
         
         // Artisan::call('migrate:school');
         Config::set('database.connections.school.database', $schoolData->database_name);

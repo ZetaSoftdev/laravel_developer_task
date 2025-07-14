@@ -53,10 +53,97 @@ class ZoomController extends Controller
         ResponseService::noPermissionThenRedirect('zoom-class-list');
         
         $classSections = $this->classSection->builder()->with('class', 'section', 'medium')->get();
-        $subjects = $this->subject->all();
+        $subjects = $this->subject->builder()->get();
         $sessionYears = $this->sessionYear->all();
         
         return view('zoom.index', compact('classSections', 'subjects', 'sessionYears'));
+    }
+    
+    /**
+     * Display a listing of the resource for DataTable.
+     */
+    public function list(Request $request)
+    {
+        ResponseService::noPermissionThenRedirect('zoom-class-list');
+        
+        $offset = request('offset', 0);
+        $limit = request('limit', 10);
+        $sort = request('sort', 'id');
+        $order = request('order', 'DESC');
+        $search = $request->search;
+        
+        $sql = $this->zoomClass->builder()
+            ->with('teacher', 'classSection.class', 'classSection.section', 'subject');
+            
+        if (!empty($search)) {
+            $sql = $sql->where(function($query) use ($search) {
+                $query->where('title', 'LIKE', "%$search%")
+                    ->orWhere('meeting_id', 'LIKE', "%$search%");
+            });
+        }
+        
+        if ($request->has('class_section_id') && !empty($request->class_section_id)) {
+            $sql = $sql->where('class_section_id', $request->class_section_id);
+        }
+        
+        if ($request->has('subject_id') && !empty($request->subject_id)) {
+            $sql = $sql->where('subject_id', $request->subject_id);
+        }
+        
+        if ($request->has('session_year_id') && !empty($request->session_year_id)) {
+            $sql = $sql->where('session_year_id', $request->session_year_id);
+        }
+        
+        if ($request->has('status') && !empty($request->status)) {
+            $sql = $sql->where('status', $request->status);
+        }
+        
+        $total = $sql->count();
+        
+        $sql = $sql->orderBy($sort, $order)->skip($offset)->take($limit);
+        $res = $sql->get();
+        
+        $bulkData = array();
+        $bulkData['total'] = $total;
+        $rows = array();
+        $no = 1;
+        
+        foreach ($res as $row) {
+            $operate = '';
+            
+            // Check if user has edit permission or is a teacher
+            if (Auth::user()->can('zoom-class-edit') || (Auth::user()->hasRole('Teacher') && Auth::id() == $row->teacher_id)) {
+                $operate .= '<a href="' . route('zoom.edit', $row->id) . '" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id="' . $row->id . '" title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            }
+            
+            // Check if user has delete permission or is a teacher
+            if (Auth::user()->can('zoom-class-delete') || (Auth::user()->hasRole('Teacher') && Auth::id() == $row->teacher_id)) {
+                $operate .= '<a href="' . route('zoom.destroy', $row->id) . '" class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id="' . $row->id . '" title="Delete"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;';
+            }
+            
+            $start = date('d-m-Y h:i A', strtotime($row->start_time));
+            
+            $tempRow = array(
+                'id' => $row->id,
+                'no' => $no++,
+                'title' => $row->title,
+                'class_section' => $row->classSection ? $row->classSection->class->name . ' ' . $row->classSection->section->name : 'N/A',
+                'subject' => $row->subject ? $row->subject->name : 'N/A',
+                'teacher' => $row->teacher->full_name,
+                'start_time' => $start,
+                'end_time' => date('d-m-Y h:i A', strtotime($row->end_time)),
+                'meeting_id' => $row->meeting_id,
+                'status' => $row->status,
+                'join_url' => '<a href="' . $row->join_url . '" target="_blank" class="btn btn-success">Join Meeting</a>',
+                'start_url' => Auth::user()->id == $row->teacher_id ? '<a href="' . $row->start_url . '" target="_blank" class="btn btn-primary">Start Meeting</a>' : '',
+                'operate' => $operate
+            );
+            
+            $rows[] = $tempRow;
+        }
+        
+        $bulkData['rows'] = $rows;
+        return response()->json($bulkData);
     }
 
     /**
@@ -162,7 +249,7 @@ class ZoomController extends Controller
         }
         
         $classSections = $this->classSection->builder()->with('class', 'section', 'medium')->get();
-        $subjects = $this->subject->all();
+        $subjects = $this->subject->builder()->get();
         $sessionYears = $this->sessionYear->all();
         $defaultSessionYear = $this->sessionYear->builder()->where('default', 1)->first();
         
@@ -263,7 +350,7 @@ class ZoomController extends Controller
         }
         
         $classSections = $this->classSection->builder()->with('class', 'section', 'medium')->get();
-        $subjects = $this->subject->all();
+        $subjects = $this->subject->builder()->get();
         $sessionYears = $this->sessionYear->all();
         
         return view('zoom.edit', compact('onlineClass', 'classSections', 'subjects', 'sessionYears'));

@@ -22,6 +22,7 @@ use App\Repositories\Student\StudentInterface;
 use App\Repositories\Subscription\SubscriptionInterface;
 use App\Repositories\Timetable\TimetableInterface;
 use App\Repositories\User\UserInterface;
+use App\Repositories\ZoomOnlineClass\ZoomOnlineClassInterface;
 use App\Services\CachingService;
 use App\Services\SubscriptionService;
 use Carbon\Carbon;
@@ -48,8 +49,9 @@ class DashboardController extends Controller {
     private PaymentTransactionInterface $paymentTransaction;
     private ClassSectionInterface $classSection;
     private StudentInterface $student;
+    private ZoomOnlineClassInterface $zoomClass;
 
-    public function __construct(UserInterface $user, AnnouncementInterface $announcement, SubscriptionInterface $subscription, SchoolInterface $school, LeaveInterface $leave, HolidayInterface $holiday, CachingService $cache, ClassSchoolInterface $class, TimetableInterface $timetable, SubscriptionService $subscriptionService, ExamInterface $exam, SessionYearInterface $sessionYear, StreamInterface $stream, FeesInterface $fees, FeesPaidInterface $feesPaid, PaymentTransactionInterface $paymentTransaction, ClassSectionInterface $classSection, StudentInterface $student) {
+    public function __construct(UserInterface $user, AnnouncementInterface $announcement, SubscriptionInterface $subscription, SchoolInterface $school, LeaveInterface $leave, HolidayInterface $holiday, CachingService $cache, ClassSchoolInterface $class, TimetableInterface $timetable, SubscriptionService $subscriptionService, ExamInterface $exam, SessionYearInterface $sessionYear, StreamInterface $stream, FeesInterface $fees, FeesPaidInterface $feesPaid, PaymentTransactionInterface $paymentTransaction, ClassSectionInterface $classSection, StudentInterface $student, ZoomOnlineClassInterface $zoomClass) {
         // $this->middleware('auth');
         $this->user = $user;
         $this->announcement = $announcement;
@@ -69,6 +71,7 @@ class DashboardController extends Controller {
         $this->paymentTransaction = $paymentTransaction;
         $this->classSection = $classSection;
         $this->student = $student;
+        $this->zoomClass = $zoomClass;
     }
 
     public function index() {
@@ -85,6 +88,7 @@ class DashboardController extends Controller {
         $previous_subscriptions = array();
         $announcement = array();
         $holiday = array();
+        $upcomingZoomClasses = array();
         $total_students = $male_students = $female_students = $timetables = $classData = $fees_detail = array();
         $paymentConfiguration = '';
         $settings = app(CachingService::class)->getSystemSettings();
@@ -255,7 +259,26 @@ class DashboardController extends Controller {
 
         }
 
-        // Timetable
+        // Upcoming Zoom Classes for Students
+        if (Auth::user()->hasRole('Student')) {
+            try {
+                $studentData = $this->student->builder()->where('user_id', Auth::user()->id)->first();
+                if ($studentData) {
+                    $upcomingZoomClasses = $this->zoomClass->builder()
+                        ->where('class_section_id', $studentData->class_section_id)
+                        ->where('start_time', '>=', Carbon::now())
+                        ->where('start_time', '<=', Carbon::now()->addDays(7))
+                        ->orderBy('start_time', 'ASC')
+                        ->with('teacher:id,first_name,last_name', 'subject:id,name', 'classSection.class', 'classSection.section')
+                        ->limit(5)
+                        ->get();
+                }
+            } catch (\Exception $e) {
+                $upcomingZoomClasses = [];
+            }
+        }
+
+        // Timetable and Upcoming Zoom Classes for Teachers
         if (Auth::user()->hasRole('Teacher')) {
             $date = Carbon::now();
             $fullDayName = $date->format('l');
@@ -265,13 +288,30 @@ class DashboardController extends Controller {
                 })
                 ->where('day', $fullDayName)->orderBy('start_time', 'ASC')
                 ->with('subject:id,name,type', 'class_section.class', 'class_section.section', 'class_section.medium')->get();
+            
+            // Get upcoming zoom classes for teacher
+            try {
+                $upcomingZoomClasses = $this->zoomClass->builder()
+                    ->where('teacher_id', Auth::user()->id)
+                    ->where('start_time', '>=', Carbon::now())
+                    ->where('start_time', '<=', Carbon::now()->addDays(7))
+                    ->orderBy('start_time', 'ASC')
+                    ->with('subject:id,name', 'classSection.class', 'classSection.section')
+                    ->limit(5)
+                    ->get();
+            } catch (\Exception $e) {
+                $upcomingZoomClasses = [];
+            }
         }
         
         if ((Auth::user()->hasRole('School Admin') || Auth::user()->school_id) && (!Auth::user()->hasRole('Teacher') && !Auth::user()->hasRole('Super Admin')) ) {
             return view('dashboard', compact('teacher', 'parent', 'student', 'announcement', 'teachers', 'boys', 'girls', 'total_students','license_expire', 'subscription', 'previous_subscriptions', 'holiday', 'classData', 'prepiad_upcoming_plan', 'prepiad_upcoming_plan_type','check_payment','sessionYear','classes_counter','streams','exams', 'fees_detail', 'settings', 'class_names', 'paymentConfiguration','system_settings','class_section_names'));
         }
         if (Auth::user()->hasRole('Teacher')) {
-            return view('teacher_dashboard', compact('teacher', 'parent', 'student', 'announcement', 'teachers', 'boys', 'girls', 'holiday', 'timetables', 'classData','sessionYear','classes_counter','streams','class_names','total_students','exams'));
+            return view('teacher_dashboard', compact('teacher', 'parent', 'student', 'announcement', 'teachers', 'boys', 'girls', 'holiday', 'timetables', 'classData','sessionYear','classes_counter','streams','class_names','total_students','exams', 'upcomingZoomClasses'));
+        }
+        if (Auth::user()->hasRole('Student')) {
+            return view('student_dashboard', compact('announcement', 'holiday', 'upcomingZoomClasses', 'settings'));
         }
 
         if (Auth::user()->hasRole('Super Admin') || Auth::user()->school_id == null) {

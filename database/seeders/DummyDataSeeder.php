@@ -62,11 +62,17 @@ class DummyDataSeeder extends Seeder
             ]
         ];
 
-        User::upsert($data, ['email'], ['image', 'password', 'first_name', 'last_name', 'mobile', 'current_address', 'permanent_address']);
-        $schoolAdmin1 = User::where('email', 'school1@gmail.com')->first();
+        // Create school admin users
+        $schoolAdmin1 = User::updateOrCreate(
+            ['email' => 'school1@gmail.com'],
+            $data[0]
+        );
         $schoolAdmin1->assignRole('School Admin');
 
-        $schoolAdmin2 = User::where('email', 'school2@gmail.com')->first();
+        $schoolAdmin2 = User::updateOrCreate(
+            ['email' => 'school2@gmail.com'],
+            $data[1]
+        );
         $schoolAdmin2->assignRole('School Admin');
 
         $schoolData = [
@@ -79,7 +85,13 @@ class DummyDataSeeder extends Seeder
                 'tagline'       => 'We Provide Best Education',
                 'logo'          => 'school/logo.png',
                 'admin_id'      => $schoolAdmin1->id,
-                'status'        => 1
+                'status'        => 1,
+                'database_name' => 'school',
+                'type' => 'demo',
+                'domain' => null,
+                'code' => null,
+                'created_at' => now(),
+                'updated_at' => now()
             ], [
                 'id'            => 2,
                 'name'          => 'School 2',
@@ -89,7 +101,13 @@ class DummyDataSeeder extends Seeder
                 'tagline'       => 'We Provide Best Education',
                 'logo'          => 'school/logo.png',
                 'admin_id'      => $schoolAdmin2->id,
-                'status'        => 1
+                'status'        => 1,
+                'database_name' => 'school',
+                'type' => 'demo',
+                'domain' => null,
+                'code' => null,
+                'created_at' => now(),
+                'updated_at' => now()
             ]
         ];
         School::upsert($schoolData, ['id'], ['name', 'address', 'support_phone', 'support_email', 'tagline', 'logo', 'admin_id']);
@@ -102,6 +120,7 @@ class DummyDataSeeder extends Seeder
 
         foreach ($schoolData as $value) {
             $value = (object)$value;
+            $schoolService->createDatabaseMigration($value);
             $schoolService->preSettingsSetup($value);
         }
 
@@ -193,12 +212,24 @@ class DummyDataSeeder extends Seeder
             ]
         ];
 
-        User::upsert($user, ['email'], ['image', 'password', 'first_name', 'last_name', 'mobile', 'gender', 'current_address', 'permanent_address', 'school_id']);
-        $guardianUser = User::where('email', 'guardian@gmail.com')->first();
+        // Create other users
+        $guardianUser = User::updateOrCreate(
+            ['email' => 'guardian@gmail.com'],
+            $user[0]
+        );
         $guardianUser->assignRole('Guardian');
 
-        $studentUser = User::where('email', 'student@gmail.com')->first();
+        $studentUser = User::updateOrCreate(
+            ['email' => 'student@gmail.com'],
+            $user[1]
+        );
         $studentUser->assignRole('Student');
+
+        $teacherUser = User::updateOrCreate(
+            ['email' => 'teacher@gmail.com'],
+            $user[2]
+        );
+        $teacherUser->assignRole('Teacher');
 
         //Student
         $student = [
@@ -214,9 +245,6 @@ class DummyDataSeeder extends Seeder
         ];
         Students::upsert($student, ['id'], ['user_id', 'class_section_id', 'admission_no', 'roll_number', 'admission_date', 'guardian_id', 'school_id', 'session_year_id']);
 
-
-        $teacherUser = User::where('email', 'teacher@gmail.com')->first();
-        $teacherUser->assignRole('Teacher');
         $teacher = [
             'id'            => 1,
             'user_id'       => $teacherUser->id,

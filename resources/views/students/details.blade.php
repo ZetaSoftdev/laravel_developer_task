@@ -396,6 +396,16 @@
 @section('script')
     <script>
         let userIds;
+        
+        // Auto-select first class for teachers
+        @if(Auth::user()->hasRole('Teacher') && $class_sections->count() > 0)
+            $(document).ready(function() {
+                if($('#filter_class_section_id').val() == '') {
+                    $('#filter_class_section_id').val('{{ $class_sections->first()->id }}').trigger('change');
+                }
+            });
+        @endif
+        
         $('.table-list-type').on('click', function (e) {
             let value = $(this).data('id');
             let ActiveLang = window.trans['Active'];

@@ -29,10 +29,13 @@ use App\Repositories\SubjectTeacher\SubjectTeacherInterface;
 use App\Repositories\Timetable\TimetableInterface;
 use App\Repositories\Topics\TopicsInterface;
 use App\Repositories\User\UserInterface;
+use App\Repositories\ZoomOnlineClass\ZoomOnlineClassInterface;
+use App\Repositories\ZoomAttendance\ZoomAttendanceInterface;
 use App\Rules\MaxFileSize;
 use App\Services\CachingService;
 use App\Services\FeaturesService;
 use App\Services\ResponseService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -42,6 +45,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use JetBrains\PhpStorm\NoReturn;
 use Throwable;
+use Carbon\Carbon;
 
 class StudentApiController extends Controller {
     private StudentInterface $student;
@@ -67,8 +71,10 @@ class StudentApiController extends Controller {
     private OnlineExamStudentAnswerInterface $onlineExamStudentAnswer;
     private SlidersInterface $sliders;
     private FeaturesService $featureService;
+    private ZoomOnlineClassInterface $zoomOnlineClass;
+    private ZoomAttendanceInterface $zoomAttendance;
 
-    public function __construct(StudentInterface $student, UserInterface $user, AssignmentInterface $assignment, AssignmentSubmissionInterface $assignmentSubmission, FilesInterface $files, CachingService $cache, StudentSubjectInterface $studentSubject, TimetableInterface $timetable, ExamInterface $exam, ExamResultInterface $examResult, LessonsInterface $lesson, TopicsInterface $lessonTopic, AttendanceInterface $attendance, HolidayInterface $holiday, SessionYearInterface $sessionYear, SubjectTeacherInterface $subjectTeacher, AnnouncementInterface $announcement, OnlineExamInterface $onlineExam, StudentOnlineExamStatusInterface $studentOnlineExamStatus, OnlineExamQuestionChoiceInterface $onlineExamQuestionChoice, OnlineExamStudentAnswerInterface $onlineExamStudentAnswer, SlidersInterface $sliders, FeaturesService $featuresService) {
+    public function __construct(StudentInterface $student, UserInterface $user, AssignmentInterface $assignment, AssignmentSubmissionInterface $assignmentSubmission, FilesInterface $files, CachingService $cache, StudentSubjectInterface $studentSubject, TimetableInterface $timetable, ExamInterface $exam, ExamResultInterface $examResult, LessonsInterface $lesson, TopicsInterface $lessonTopic, AttendanceInterface $attendance, HolidayInterface $holiday, SessionYearInterface $sessionYear, SubjectTeacherInterface $subjectTeacher, AnnouncementInterface $announcement, OnlineExamInterface $onlineExam, StudentOnlineExamStatusInterface $studentOnlineExamStatus, OnlineExamQuestionChoiceInterface $onlineExamQuestionChoice, OnlineExamStudentAnswerInterface $onlineExamStudentAnswer, SlidersInterface $sliders, FeaturesService $featuresService, ZoomOnlineClassInterface $zoomOnlineClass, ZoomAttendanceInterface $zoomAttendance) {
         $this->student = $student;
         $this->user = $user;
         $this->assignment = $assignment;
@@ -92,6 +98,8 @@ class StudentApiController extends Controller {
         $this->onlineExamStudentAnswer = $onlineExamStudentAnswer;
         $this->sliders = $sliders;
         $this->featureService = $featuresService;
+        $this->zoomOnlineClass = $zoomOnlineClass;
+        $this->zoomAttendance = $zoomAttendance;
     }
 
 
@@ -1419,6 +1427,203 @@ class StudentApiController extends Controller {
             ResponseService::errorResponse();
         }
     }
+
+    public function getUpcomingZoomClasses(Request $request) {
+        try {
+            $student = $request->user()->student;
+            $sessionYear = $this->cache->getDefaultSessionYear();
+            
+            $classes = $this->zoomOnlineClass
+                ->builder()
+                ->where('class_section_id', $student->class_section_id)
+                ->where('session_year_id', $sessionYear->id)
+                ->whereDate('start_time', '>=', now())
+                ->with(['class_subject.subject', 'teacher'])
+                ->orderBy('start_time', 'asc')
+                ->get();
+                
+            ResponseService::successResponse("Upcoming Zoom Classes Fetched Successfully", $classes);
+        } catch (Throwable $e) {
+            ResponseService::logErrorResponse($e);
+            ResponseService::errorResponse();
+        }
+    }
+
+    public function joinZoomSession(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'class_id' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+
+        try {
+            $student = $request->user()->student;
+            $class = $this->zoomOnlineClass->builder()
+                ->where('id', $request->class_id)
+                ->where('class_section_id', $student->class_section_id)
+                ->first();
+
+            if (!$class) {
+                ResponseService::errorResponse("Invalid class ID or you don't have access to this class");
+            }
+
+            // Check if class is active
+            $now = now();
+            if ($now->lt($class->start_time)) {
+                ResponseService::errorResponse("Class has not started yet");
+            }
+
+            if ($now->gt($class->end_time)) {
+                ResponseService::errorResponse("Class has already ended");
+            }
+
+            $data = [
+                'join_url' => $class->join_url,
+                'class_id' => $class->id,
+                'meeting_id' => $class->meeting_id,
+                'passcode' => $class->passcode,
+                'topic' => $class->topic,
+                'start_time' => $class->start_time,
+                'end_time' => $class->end_time
+            ];
+            
+            ResponseService::successResponse("Join URL Fetched Successfully", $data);
+        } catch (Throwable $e) {
+            ResponseService::logErrorResponse($e);
+            ResponseService::errorResponse();
+        }
+    }
+
+    public function markZoomAttendance(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'class_id' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+
+        try {
+            $student = $request->user()->student;
+            $class = $this->zoomOnlineClass->builder()
+                ->where('id', $request->class_id)
+                ->where('class_section_id', $student->class_section_id)
+                ->first();
+
+            if (!$class) {
+                ResponseService::errorResponse("Invalid class ID or you don't have access to this class");
+            }
+
+            // Check if attendance already marked
+            $existingAttendance = $this->zoomAttendance->builder()
+                ->where('student_id', $student->user_id)
+                ->where('online_class_id', $request->class_id)
+                ->first();
+
+            if ($existingAttendance) {
+                ResponseService::errorResponse("Attendance already marked for this class");
+            }
+
+            $attendanceData = [
+                'student_id' => $student->user_id,
+                'online_class_id' => $request->class_id,
+                'attended_at' => now()
+            ];
+            
+            $this->zoomAttendance->create($attendanceData);
+            ResponseService::successResponse("Attendance Marked Successfully");
+        } catch (Throwable $e) {
+            ResponseService::logErrorResponse($e);
+            ResponseService::errorResponse();
+        }
+    }
+
+    public function getZoomAttendanceHistory(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'month' => 'nullable|numeric|min:1|max:12',
+            'year' => 'nullable|numeric|min:2020'
+        ]);
+
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+
+        try {
+            $student = $request->user()->student;
+            $sessionYear = $this->cache->getDefaultSessionYear();
+            
+            $attendanceQuery = $this->zoomAttendance->builder()
+                ->where('student_id', $student->user_id)
+                ->with(['online_class.class_subject.subject', 'online_class.teacher'])
+                ->whereHas('online_class', function($query) use ($sessionYear) {
+                    $query->where('session_year_id', $sessionYear->id);
+                });
+
+            if ($request->month) {
+                $attendanceQuery->whereMonth('attended_at', $request->month);
+            }
+
+            if ($request->year) {
+                $attendanceQuery->whereYear('attended_at', $request->year);
+            }
+
+            $attendance = $attendanceQuery->orderBy('attended_at', 'desc')->get();
+            
+            ResponseService::successResponse("Zoom Attendance History Fetched Successfully", $attendance);
+        } catch (Throwable $e) {
+            ResponseService::logErrorResponse($e);
+            ResponseService::errorResponse();
+        }
+    }
+
+    /**
+     * Send notifications for upcoming Zoom classes
+     * This method can be called via a scheduled job or webhook
+     */
+    public function sendZoomClassNotifications(Request $request) {
+        try {
+            // Get all upcoming Zoom classes in the next 30 minutes
+            $upcomingClasses = $this->zoomOnlineClass->builder()
+                ->where('start_time', '>=', now())
+                ->where('start_time', '<=', now()->addMinutes(30))
+                ->with(['class_subject.subject', 'teacher', 'class_section'])
+                ->get();
+
+            foreach ($upcomingClasses as $class) {
+                // Get all students in this class section
+                $students = $this->student->builder()
+                    ->where('class_section_id', $class->class_section_id)
+                    ->with('user')
+                    ->get();
+
+                $studentIds = $students->pluck('user_id')->toArray();
+
+                if (!empty($studentIds)) {
+                    $title = "Zoom Class Starting Soon";
+                    $body = "Your {$class->class_subject->subject->name} class with {$class->teacher->full_name} starts in {$class->start_time->diffInMinutes(now())} minutes";
+                    $type = "zoom_class_reminder";
+                    $customData = [
+                        'class_id' => $class->id,
+                        'subject_name' => $class->class_subject->subject->name,
+                        'teacher_name' => $class->teacher->full_name,
+                        'start_time' => $class->start_time->toDateTimeString(),
+                        'join_url' => $class->join_url
+                    ];
+
+                    // Send notification using the helper function
+                    send_notification($studentIds, $title, $body, $type, $customData);
+                }
+            }
+
+            ResponseService::successResponse("Zoom class notifications sent successfully");
+        } catch (Throwable $e) {
+            ResponseService::logErrorResponse($e);
+            ResponseService::errorResponse();
+        }
+    }
+
 
     public function getSliders() {
         try {
