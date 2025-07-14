@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Language;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,42 +22,35 @@ class LanguageManager
      */
     public function handle(Request $request, Closure $next)
     {
+        $defaultLocale = env('APPLANG', 'en');
 
-        try {            
-            if (Session::has('locale') && Auth::user() && Session::get('locale') == Auth::user()->language) {
-                // Admin dashboard
-                app()->setLocale(Session::get('locale'));
-            } else {
-                // When users log in to the system, make sure to set their preferred panel language.
-                if (Auth::user()) {
-                    Session::put('locale', Auth::user()->language);
-                    Session::save();
-                    $language = Language::where('code', Auth::user()->language)->first();
+        try {
+            if (Auth::check()) {
+                // User is authenticated
+                $userLanguage = Auth::user()->language;
+                app()->setLocale($userLanguage);
+                Session::put('locale', $userLanguage);
+
+                if (Session::get('language.code') !== $userLanguage) {
+                    $language = Language::where('code', $userLanguage)->first();
                     Session::put('language', $language);
-                    app()->setLocale(Auth::user()->language);
-                } else {
-                    // Landing page
-                    if (Session::has('landing_locale')) {
-                        app()->setLocale(Session::get('landing_locale'));
-                    } else {
-                        $lang = env('APPLANG');
-                        if (is_null($lang)) {
-                            $lang = "en";
-                        }
+                }
 
-                        $language = Language::where('code', $lang)->first();
-                        Session::put('landing_locale', $lang);
-                        Session::save();
-                        Session::put('language', $language);
-                        app()->setLocale(Session::get('landing_locale'));
-                    }
+            } else {
+                // User is not authenticated (guest)
+                $sessionLocale = Session::get('landing_locale', $defaultLocale);
+                app()->setLocale($sessionLocale);
+
+                if (Session::get('language.code') !== $sessionLocale) {
+                    $language = Language::where('code', $sessionLocale)->first();
+                    Session::put('language', $language);
                 }
             }
         } catch (\Throwable $th) {
-            if (Session::has('locale')) {
-                app()->setLocale(Session::get('locale'));
-            }
+            // Fallback in case of any error (e.g., database not ready)
+            app()->setLocale($defaultLocale);
         }
+
         return $next($request);
     }
 }

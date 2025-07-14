@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 
@@ -14,6 +14,13 @@ class UploadService {
             $folder = 'super-admin/'.$folder;
         }
         $file_name = uniqid('', true) . time() . '.' . $requestFile->getClientOriginalExtension();
+        
+        // TEMPORARY FIX: Bypass image compression for all files due to GD library issues
+        // Store file directly without processing
+        $file = $requestFile;
+        $file->storeAs($folder, $file_name, 'public');
+        
+        /* Original code - commented out due to GD library issues
         if (in_array($requestFile->getClientOriginalExtension(), ['jpg', 'jpeg', 'png'])) {
             // Check the Extension should be jpg or png and do compression
             $image = Image::make($requestFile)->encode(null, 60);
@@ -23,6 +30,8 @@ class UploadService {
             $file = $requestFile;
             $file->storeAs($folder, $file_name, 'public');
         }
+        */
+        
         return $folder . '/' . $file_name;
     }
 

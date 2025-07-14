@@ -209,3 +209,35 @@
         </div>
     </div>
 @endsection
+
+@section('script')
+    <script>
+        $(document).ready(function() {
+            $('.subject-create-form').on('submit', function(e) {
+                e.preventDefault(); // Prevent the default form submission
+
+                let formData = new FormData(this);
+                let url = $(this).attr('action');
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    processData: false, // Don't process the data
+                    contentType: false, // Don't set contentType
+                    success: function(response) {
+                        console.log('Success:', response);
+                        // You can add logic here to show a success message from the response
+                        alert('Subject created successfully! Check the console for the full response.');
+                        location.reload();
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('Error:', jqXHR.responseText);
+                        // You can add logic here to show an error message
+                        alert('An error occurred. Check the console for details.');
+                    }
+                });
+            });
+        });
+    </script>
+@endsection

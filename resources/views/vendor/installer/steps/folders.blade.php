@@ -8,7 +8,7 @@
             <div class="w-full px-4 py-2 text-gray-800">
                 {{ $check['name'] }}
                 <div class="float-right">
-                    @if($check['check']())
+                    @if(isset($check['check']) && is_callable($check['check']) && $check['check']())
                         <x-installer::success-check-icon/>
                     @else
                         <x-installer::error-check-icon/>
@@ -17,15 +17,16 @@
             </div>
         @endforeach
     </div>
+
     <div class="flex justify-end">
-        @if($result)
+        @if($result && Route::has('install.purchase-code.index'))
             <x-installer::link :href="route('install.purchase-code.index')">
                 Next step
                 <svg class="fill-current w-5 h-5 ml-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a 1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                 </svg>
             </x-installer::link>
-        @else
+        @elseif(Route::has('LaravelWizardInstaller::install.server'))
             <x-installer::link :href="route('LaravelWizardInstaller::install.server')" color="red">
                 Reload
                 <svg class="fill-current w-5 h-5 ml-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

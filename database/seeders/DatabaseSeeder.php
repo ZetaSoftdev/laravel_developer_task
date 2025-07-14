@@ -11,10 +11,8 @@ class DatabaseSeeder extends Seeder {
      * @return void
      */
     public function run() {
-        $this->call([
-            InstallationSeeder::class,
-            AddSuperAdminSeeder::class,
-            // DummyDataSeeder::class
-        ]);
+        // \App\Models\User::factory(10)->create();
+        $this->call(RoleSeeder::class);
+        $this->call(ZoomPermissionSeeder::class);
     }
 }

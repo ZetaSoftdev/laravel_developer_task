@@ -26,7 +26,7 @@
                 </svg>
             </x-installer::link>
         @else
-            <x-installer::link :href="route('LaravelWizardInstaller::install.server')" color="red">
+<x-installer::link :href="route('install.server')" color="red">
                 Reload
                 <svg class="fill-current w-5 h-5 ml-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path

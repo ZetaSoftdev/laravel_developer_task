@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Form Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#testForm').on('submit', function(e) {
+                e.preventDefault();
+                console.log("Form submitted");
+                alert("Form submitted successfully!");
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Test Form</h1>
+    <form id="testForm" method="POST">
+        <input type="text" name="test" value="test">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html> 

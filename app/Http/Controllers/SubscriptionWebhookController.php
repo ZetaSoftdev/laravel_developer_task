@@ -254,13 +254,15 @@ class SubscriptionWebhookController extends Controller
 
                             // Add features
                             $subscription_features = array();
-                            foreach ($new_subscription->package->package_feature as $key => $feature) {
-                                $subscription_features[] = [
-                                    'subscription_id' => $new_subscription->id,
-                                    'feature_id'      => $feature->feature_id
-                                ];
+                            if ($new_subscription && $new_subscription->package && $new_subscription->package->package_feature) {
+                                foreach ($new_subscription->package->package_feature as $key => $feature) {
+                                    $subscription_features[] = [
+                                        'subscription_id' => $new_subscription->id,
+                                        'feature_id'      => $feature->feature_id
+                                    ];
+                                }
+                                SubscriptionFeature::upsert($subscription_features, ['subscription_id', 'feature_id'], ['subscription_id', 'feature_id']);
                             }
-                            SubscriptionFeature::upsert($subscription_features, ['subscription_id', 'feature_id'], ['subscription_id', 'feature_id']);
 
                             // Generate bill
                             $systemSettings = $this->cache->getSystemSettings();
@@ -332,13 +334,15 @@ class SubscriptionWebhookController extends Controller
 
                             // Add features
                             $subscription_features = array();
-                            foreach ($new_subscription->package->package_feature as $key => $feature) {
-                                $subscription_features[] = [
-                                    'subscription_id' => $new_subscription->id,
-                                    'feature_id'      => $feature->feature_id
-                                ];
+                            if ($new_subscription && $new_subscription->package && $new_subscription->package->package_feature) {
+                                foreach ($new_subscription->package->package_feature as $key => $feature) {
+                                    $subscription_features[] = [
+                                        'subscription_id' => $new_subscription->id,
+                                        'feature_id'      => $feature->feature_id
+                                    ];
+                                }
+                                SubscriptionFeature::upsert($subscription_features, ['subscription_id', 'feature_id'], ['subscription_id', 'feature_id']);
                             }
-                            SubscriptionFeature::upsert($subscription_features, ['subscription_id', 'feature_id'], ['subscription_id', 'feature_id']);
 
                             // Generate bill
                             $systemSettings = $this->cache->getSystemSettings();
@@ -1028,8 +1032,8 @@ class SubscriptionWebhookController extends Controller
             Log::info("Subscription created/updated successfully: ID={$new_subscription->id}");
 
                             // Add features
-            $subscription_features = [];
-            if (isset($new_subscription->package) && isset($new_subscription->package->package_feature)) {
+            $subscription_features = array();
+            if ($new_subscription && $new_subscription->package && $new_subscription->package->package_feature) {
                             foreach ($new_subscription->package->package_feature as $key => $feature) {
                                 $subscription_features[] = [
                                     'subscription_id' => $new_subscription->id,
@@ -1190,21 +1194,23 @@ class SubscriptionWebhookController extends Controller
             Log::info("Created new subscription with ID: {$new_subscription->id}");
 
                             // Add features
-            $subscription_features = [];
-            foreach ($new_subscription->package->package_feature as $feature) {
-                                $subscription_features[] = [
-                                    'subscription_id' => $new_subscription->id,
-                                    'feature_id'      => $feature->feature_id
-                                ];
-                            }
-            
-            if (count($subscription_features) > 0) {
-                SubscriptionFeature::upsert(
-                    $subscription_features, 
-                    ['subscription_id', 'feature_id'], 
-                    ['subscription_id', 'feature_id']
-                );
-                Log::info("Added " . count($subscription_features) . " features to new subscription");
+            $subscription_features = array();
+            if ($new_subscription && $new_subscription->package && $new_subscription->package->package_feature) {
+                                foreach ($new_subscription->package->package_feature as $feature) {
+                                    $subscription_features[] = [
+                                        'subscription_id' => $new_subscription->id,
+                                        'feature_id'      => $feature->feature_id
+                                    ];
+                                }
+                
+                if (count($subscription_features) > 0) {
+                    SubscriptionFeature::upsert(
+                        $subscription_features, 
+                        ['subscription_id', 'feature_id'], 
+                        ['subscription_id', 'feature_id']
+                    );
+                    Log::info("Added " . count($subscription_features) . " features to new subscription");
+                }
             }
 
                             // Generate bill

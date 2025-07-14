@@ -161,7 +161,7 @@
                                         <div class="form-group col-sm-12 col-md-4 serverinfo" style="display: none">
                                             <label for="serinfo">{{ __('server_info')}}</label>
                                             <div class="input-group mb-3">
-                                                    <input type="text" class="form-control" name="server_ip" placeholder="{{ __('domain') }}" aria-describedby="basic-addon2" disabled value="{{ $_SERVER['SERVER_ADDR'] ?? '127.0.0.1'; }}">
+                                                    <input type="text" class="form-control" name="server_ip" placeholder="{{ __('domain') }}" aria-describedby="basic-addon2" disabled value="{{ $_SERVER['SERVER_ADDR'] ?? '127.0.0.1' }}">
                                             </div>
                                         </div>
                                     @endif

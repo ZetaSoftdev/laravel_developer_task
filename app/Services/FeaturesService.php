@@ -15,7 +15,10 @@ class FeaturesService {
 
     public static function getFeatures($schoolID = null) {
         // Fetch All the Features of the School in which User is associated. Then Cache that result for 30 minutes
-        $schoolID = !empty($schoolID) ? $schoolID : Auth::user()->school_id;
+        if (empty($schoolID) && Auth::check()) {
+            $schoolID = Auth::user()->school_id;
+        }
+
         if (!empty($schoolID)) {
             return app(CachingService::class)->schoolLevelCaching(config('constants.CACHE.SCHOOL.FEATURES'), function () use ($schoolID) {
                 $active_subscription = app(SubscriptionService::class)->active_subscription($schoolID);

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Session;
@@ -204,26 +205,26 @@ class SchoolDataService {
         SchoolSetting::upsert($schoolSettingData, ["name", "school_id"], ["data", "type"]);
     }
     
-    public function createPreSetupRole($school) {
+    public function createPreSetupRole($schoolData) {
 
         DB::setDefaultConnection('school');
-        Config::set('database.connections.school.database', $school->database_name);
+        Config::set('database.connections.school.database', $schoolData->database_name);
         DB::purge('school');
         DB::connection('school')->reconnect();
         DB::setDefaultConnection('school');
 
         $this->createPermissions();
 
-        $this->createSchoolAdminRole($school);
+        $this->createSchoolAdminRole($schoolData);
 
-        $schoolAdminUser = User::on('school')->where('id', $school->admin_id)->first();
+        $schoolAdminUser = User::on('school')->where('id', $schoolData->admin_id)->first();
         $user = $schoolAdminUser->setConnection('school');
         $user->assignRole('School Admin');
 
-        $this->defaultRoles($school);
+        $this->defaultRoles($schoolData);
 
         // Create teacher role
-        $this->createTeacherRole($school);
+        $this->createTeacherRole($schoolData);
     }
 
     public function defaultRoles($school)
@@ -401,271 +402,310 @@ class SchoolDataService {
     }
 
     public function createSchoolAdminRole($school) {
-        $role = Role::withoutGlobalScope('school')->updateOrCreate(['name' => 'School Admin', 'custom_role' => 0, 'editable' => 0, 'school_id' => $school->id]);
-        $SchoolAdminHasAccessTo = [
-            'medium-list',
-            'medium-create',
-            'medium-edit',
-            'medium-delete',
+        try {
+            $role = Role::withoutGlobalScope('school')->updateOrCreate(['name' => 'School Admin', 'custom_role' => 0, 'editable' => 0, 'school_id' => $school->id]);
+            $SchoolAdminHasAccessTo = [
+                'medium-list',
+                'medium-create',
+                'medium-edit',
+                'medium-delete',
 
-            'section-list',
-            'section-create',
-            'section-edit',
-            'section-delete',
+                'section-list',
+                'section-create',
+                'section-edit',
+                'section-delete',
 
-            'class-list',
-            'class-create',
-            'class-edit',
-            'class-delete',
+                'class-list',
+                'class-create',
+                'class-edit',
+                'class-delete',
 
-            'class-section-list',
-            'class-section-create',
-            'class-section-edit',
-            'class-section-delete',
+                'class-section-list',
+                'class-section-create',
+                'class-section-edit',
+                'class-section-delete',
 
-            'subject-list',
-            'subject-create',
-            'subject-edit',
-            'subject-delete',
+                'subject-list',
+                'subject-create',
+                'subject-edit',
+                'subject-delete',
 
-            'teacher-list',
-            'teacher-create',
-            'teacher-edit',
-            'teacher-delete',
+                'teacher-list',
+                'teacher-create',
+                'teacher-edit',
+                'teacher-delete',
 
-            'guardian-list',
-            'guardian-create',
-            'guardian-edit',
-            'guardian-delete',
+                'guardian-list',
+                'guardian-create',
+                'guardian-edit',
+                'guardian-delete',
 
-            'session-year-list',
-            'session-year-create',
-            'session-year-edit',
-            'session-year-delete',
+                'session-year-list',
+                'session-year-create',
+                'session-year-edit',
+                'session-year-delete',
 
-            'student-list',
-            'student-create',
-            'student-edit',
-            'student-delete',
+                'student-list',
+                'student-create',
+                'student-edit',
+                'student-delete',
 
-            'timetable-list',
-            'timetable-create',
-            'timetable-edit',
-            'timetable-delete',
+                'timetable-list',
+                'timetable-create',
+                'timetable-edit',
+                'timetable-delete',
 
-            'attendance-list',
+                'attendance-list',
 
-            'holiday-list',
-            'holiday-create',
-            'holiday-edit',
-            'holiday-delete',
+                'holiday-list',
+                'holiday-create',
+                'holiday-edit',
+                'holiday-delete',
 
-            'announcement-list',
-            'announcement-create',
-            'announcement-edit',
-            'announcement-delete',
+                'announcement-list',
+                'announcement-create',
+                'announcement-edit',
+                'announcement-delete',
 
-            'slider-list',
-            'slider-create',
-            'slider-edit',
-            'slider-delete',
+                'slider-list',
+                'slider-create',
+                'slider-edit',
+                'slider-delete',
 
-            'exam-create',
-            'exam-list',
-            'exam-edit',
-            'exam-delete',
+                'exam-create',
+                'exam-list',
+                'exam-edit',
+                'exam-delete',
 
-            'exam-timetable-create',
-            'exam-timetable-list',
-            'exam-timetable-delete',
+                'exam-timetable-create',
+                'exam-timetable-list',
+                'exam-timetable-delete',
 
-            'exam-result',
-            'exam-result-edit',
+                'exam-result',
+                'exam-result-edit',
 
-            'assignment-submission',
+                'assignment-submission',
 
-            'student-reset-password',
-            'reset-password-list',
-            'student-change-password',
+                'student-reset-password',
+                'reset-password-list',
+                'student-change-password',
 
-            'promote-student-list',
-            'promote-student-create',
-            'promote-student-edit',
-            'promote-student-delete',
+                'promote-student-list',
+                'promote-student-create',
+                'promote-student-edit',
+                'promote-student-delete',
 
-            'transfer-student-list',
-            'transfer-student-create',
-            'transfer-student-edit',
-            'transfer-student-delete',
+                'transfer-student-list',
+                'transfer-student-create',
+                'transfer-student-edit',
+                'transfer-student-delete',
 
-            'fees-paid',
-            'fees-config',
+                'fees-paid',
+                'fees-config',
 
-            'form-fields-list',
-            'form-fields-create',
-            'form-fields-edit',
-            'form-fields-delete',
+                'form-fields-list',
+                'form-fields-create',
+                'form-fields-edit',
+                'form-fields-delete',
 
-            'grade-create',
-            'grade-list',
-            'grade-edit',
-            'grade-delete',
+                'grade-create',
+                'grade-list',
+                'grade-edit',
+                'grade-delete',
 
-            'school-setting-manage',
+                'school-setting-manage',
 
-            'fees-type-list',
-            'fees-type-create',
-            'fees-type-edit',
-            'fees-type-delete',
+                'fees-type-list',
+                'fees-type-create',
+                'fees-type-edit',
+                'fees-type-delete',
 
-            'fees-class-list',
-            'fees-class-create',
-            'fees-class-edit',
-            'fees-class-delete',
+                'fees-class-list',
+                'fees-class-create',
+                'fees-class-edit',
+                'fees-class-delete',
 
 
-            'online-exam-create',
-            'online-exam-list',
-            'online-exam-edit',
-            'online-exam-delete',
-            'online-exam-questions-create',
-            'online-exam-questions-list',
-            'online-exam-questions-edit',
-            'online-exam-questions-delete',
-            'online-exam-result-list',
+                'online-exam-create',
+                'online-exam-list',
+                'online-exam-edit',
+                'online-exam-delete',
+                'online-exam-questions-create',
+                'online-exam-questions-list',
+                'online-exam-questions-edit',
+                'online-exam-questions-delete',
+                'online-exam-result-list',
 
-            'role-list',
-            'role-create',
-            'role-edit',
-            'role-delete',
+                'role-list',
+                'role-create',
+                'role-edit',
+                'role-delete',
 
-            'staff-list',
-            'staff-create',
-            'staff-edit',
-            'staff-delete',
+                'staff-list',
+                'staff-create',
+                'staff-edit',
+                'staff-delete',
 
-            'expense-category-list',
-            'expense-category-create',
-            'expense-category-edit',
-            'expense-category-delete',
+                'expense-category-list',
+                'expense-category-create',
+                'expense-category-edit',
+                'expense-category-delete',
 
-            'expense-list',
-            'expense-create',
-            'expense-edit',
-            'expense-delete',
+                'expense-list',
+                'expense-create',
+                'expense-edit',
+                'expense-delete',
 
-            'fees-list',
-            'fees-create',
-            'fees-edit',
-            'fees-delete',
+                'fees-list',
+                'fees-create',
+                'fees-edit',
+                'fees-delete',
 
-            'semester-list',
-            'semester-create',
-            'semester-edit',
-            'semester-delete',
+                'semester-list',
+                'semester-create',
+                'semester-edit',
+                'semester-delete',
 
-            'payroll-list',
-            'payroll-create',
-            'payroll-edit',
-            'payroll-delete',
+                'payroll-list',
+                'payroll-create',
+                'payroll-edit',
+                'payroll-delete',
 
-            'stream-list',
-            'stream-create',
-            'stream-edit',
-            'stream-delete',
+                'stream-list',
+                'stream-create',
+                'stream-edit',
+                'stream-delete',
 
-            'shift-list',
-            'shift-create',
-            'shift-edit',
-            'shift-delete',
+                'shift-list',
+                'shift-create',
+                'shift-edit',
+                'shift-delete',
 
-            'approve-leave',
-            'id-card-settings',
+                'approve-leave',
+                'id-card-settings',
 
-            'gallery-list',
-            'gallery-create',
-            'gallery-edit',
-            'gallery-delete',
+                'gallery-list',
+                'gallery-create',
+                'gallery-edit',
+                'gallery-delete',
 
-            'notification-list',
-            'notification-create',
-            'notification-delete',
+                'notification-list',
+                'notification-create',
+                'notification-delete',
 
-            'certificate-list',
-            'certificate-create', 
-            'certificate-edit',
-            'certificate-delete',
+                'certificate-list',
+                'certificate-create', 
+                'certificate-edit',
+                'certificate-delete',
 
-            'payroll-settings-list',
-            'payroll-settings-create',
-            'payroll-settings-edit',
-            'payroll-settings-delete',
+                'payroll-settings-list',
+                'payroll-settings-create',
+                'payroll-settings-edit',
+                'payroll-settings-delete',
 
-            'school-web-settings',
+                'school-web-settings',
 
-            'faqs-list',
-            'faqs-create',
-            'faqs-edit',
-            'faqs-delete',
+                'faqs-list',
+                'faqs-create',
+                'faqs-edit',
+                'faqs-delete',
 
-            'class-group-list',
-            'class-group-create',
-            'class-group-edit',
-            'class-group-delete',
+                'class-group-list',
+                'class-group-create',
+                'class-group-edit',
+                'class-group-delete',
 
-            'email-template',
-            'database-backup',
-            'view-exam-marks'
+                'email-template',
+                'database-backup',
+                'view-exam-marks',
 
-        ];
-        
-        $role->syncPermissions($SchoolAdminHasAccessTo);
+                // Add Zoom permissions
+                'zoom-settings',
+                'zoom-class-list',
+                'zoom-class-create',
+                'zoom-class-edit',
+                'zoom-class-delete',
+                'zoom-attendance'
+            ];
+            
+            // Filter out permissions that don't exist
+            $existingPermissions = [];
+            foreach ($SchoolAdminHasAccessTo as $permission) {
+                if (Permission::where('name', $permission)->exists()) {
+                    $existingPermissions[] = $permission;
+                }
+            }
+            
+            $role->syncPermissions($existingPermissions);
+        } catch (\Exception $e) {
+            Log::error('Error in createSchoolAdminRole: ' . $e->getMessage());
+        }
     }
 
     public function createTeacherRole($school)
     {
-        //Add Teacher Role
-        $teacher_role = Role::updateOrCreate(['name' => 'Teacher', 'school_id' => $school->id, 'custom_role' => 0, 'editable' => 1]);
-        $TeacherHasAccessTo = [
-            'student-list',
-            'timetable-list',
-            'holiday-list',
-            'announcement-list',
-            'announcement-create',
-            'announcement-edit',
-            'announcement-delete',
-            'assignment-create',
-            'assignment-list',
-            'assignment-edit',
-            'assignment-delete',
-            'assignment-submission',
-            'lesson-list',
-            'lesson-create',
-            'lesson-edit',
-            'lesson-delete',
-            'topic-list',
-            'topic-create',
-            'topic-edit',
-            'topic-delete',
-            'class-section-list',
-            'online-exam-create',
-            'online-exam-list',
-            'online-exam-edit',
-            'online-exam-delete',
-            'online-exam-questions-create',
-            'online-exam-questions-list',
-            'online-exam-questions-edit',
-            'online-exam-questions-delete',
-            'online-exam-result-list',
-            
-            'leave-list',
-            'leave-create',
-            'leave-edit',
-            'leave-delete',
+        try {
+            //Add Teacher Role
+            $teacher_role = Role::updateOrCreate(['name' => 'Teacher', 'school_id' => $school->id, 'custom_role' => 0, 'editable' => 1]);
+            $TeacherHasAccessTo = [
+                'student-list',
+                'timetable-list',
+                'holiday-list',
+                'announcement-list',
+                'announcement-create',
+                'announcement-edit',
+                'announcement-delete',
+                'assignment-create',
+                'assignment-list',
+                'assignment-edit',
+                'assignment-delete',
+                'assignment-submission',
+                'lesson-list',
+                'lesson-create',
+                'lesson-edit',
+                'lesson-delete',
+                'topic-list',
+                'topic-create',
+                'topic-edit',
+                'topic-delete',
+                'class-section-list',
+                'online-exam-create',
+                'online-exam-list',
+                'online-exam-edit',
+                'online-exam-delete',
+                'online-exam-questions-create',
+                'online-exam-questions-list',
+                'online-exam-questions-edit',
+                'online-exam-questions-delete',
+                'online-exam-result-list',
+                
+                'leave-list',
+                'leave-create',
+                'leave-edit',
+                'leave-delete',
 
-            'attendance-list',
-        ];
-        $teacher_role->syncPermissions($TeacherHasAccessTo);
+                'attendance-list',
+
+                // Add Zoom permissions
+                'zoom-class-list',
+                'zoom-class-create',
+                'zoom-class-edit',
+                'zoom-class-delete',
+                'zoom-attendance'
+            ];
+
+            // Filter out permissions that don't exist
+            $existingPermissions = [];
+            foreach ($TeacherHasAccessTo as $permission) {
+                if (Permission::where('name', $permission)->exists()) {
+                    $existingPermissions[] = $permission;
+                }
+            }
+            
+            $teacher_role->syncPermissions($existingPermissions);
+        } catch (\Exception $e) {
+            Log::error('Error in createTeacherRole: ' . $e->getMessage());
+        }
     }
     
     public static  function switchToMainDatabase()

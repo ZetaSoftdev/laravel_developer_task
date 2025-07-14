@@ -8,6 +8,7 @@ use App\Rules\uniqueForSchool;
 use App\Services\BootstrapTableService;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
 
@@ -86,19 +87,13 @@ class SubjectController extends Controller {
 
     public function store(Request $request) {
         ResponseService::noPermissionThenRedirect('subject-create');
+        
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
             'type'      => 'required|in:Practical,Theory',
-            'name'      => [
-                'required',
-                new uniqueForSchool('subjects', ['name' => $request->name, 'medium_id' => $request->medium_id, 'type' => $request->type])
-            ],
+            'name'      => 'required',
             'bg_color'  => 'required|not_in:transparent',
-            //            'code'      => 'nullable|unique:subjects,code',
-            'code'      => [
-                'nullable',
-                new uniqueForSchool('subjects', ['code' => $request->code, 'medium_id' => $request->medium_id, 'type' => $request->type])
-            ],
+            'code'      => 'nullable',
             'image'     => 'required|max:2048|mimes:jpg,jpeg,png,svg',
         ])->setAttributeNames(['bg_color' => 'Background Color']);
 
@@ -109,8 +104,13 @@ class SubjectController extends Controller {
             $this->subject->create($request->all());
             ResponseService::successResponse('Data Stored Successfully');
         } catch (Throwable $e) {
+            // Log detailed error information
+            Log::error('Subject creation failed: ' . $e->getMessage());
+            Log::error('Error file: ' . $e->getFile() . ' on line ' . $e->getLine());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
             ResponseService::logErrorResponse($e);
-            ResponseService::errorResponse();
+            ResponseService::errorResponse('Error: ' . $e->getMessage());
         }
     }
 

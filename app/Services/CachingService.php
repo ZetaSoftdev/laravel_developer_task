@@ -74,9 +74,9 @@ class CachingService {
      * @return mixed
      */
     public function schoolLevelCaching($key, callable $callback, $schoolId = null, int $time = 900) {
-        if($schoolId){
+        if ($schoolId) {
             $key .= "_" . $schoolId;
-        }else{
+        } else if (Auth::check()) {
             $key .= "_" . Auth::user()->school_id;
         }
 
@@ -90,7 +90,9 @@ class CachingService {
      */
     public function getSchoolSettings(array|string $key = '*', $schoolID = null) {
         $schoolSettings = app(SchoolSettingInterface::class);
-        $schoolID = (!empty($schoolID)) ? $schoolID : Auth::user()->school_id;
+        if (!$schoolID && Auth::check()) {
+            $schoolID = Auth::user()->school_id;
+        }
         $settings = $this->schoolLevelCaching(config('constants.CACHE.SCHOOL.SETTINGS'), function () use ($schoolSettings, $schoolID) {
             return $schoolSettings->builder()->where('school_id', $schoolID)->get()->pluck('data', 'name');
         },$schoolID);
@@ -124,7 +126,7 @@ class CachingService {
     public function removeSchoolCache($key, $schoolID = null) {
         if ($schoolID) {
             $key .= "_" . $schoolID;
-        } else {
+        } else if (Auth::check()) {
             $key .= "_" . Auth::user()->school_id;
         }
 
