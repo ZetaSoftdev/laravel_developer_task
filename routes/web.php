@@ -88,47 +88,47 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 
 
-// // Temporary route for debugging PHP configuration
-// Route::get('/phpinfo', function() {
-//     phpinfo();
-// })->name('phpinfo');
+// Temporary route for debugging PHP configuration
+Route::get('/phpinfo', function() {
+    phpinfo();
+})->name('phpinfo');
 
 
 
 // Test file upload routes - outside auth middleware
-// Route::get('/test-file-upload', function() {
-//     return view('test-upload');
-// })->name('test-file-upload');
+Route::get('/test-file-upload', function() {
+    return view('test-upload');
+})->name('test-file-upload');
 
-// Route::post('/test-file-upload', function(Request $request) {
-//     if($request->hasFile('test_file')) {
-//         try {
-//             $file = $request->file('test_file');
-//             $path = $file->store('test-uploads', 'public');
-//             return [
-//                 'success' => true,
-//                 'message' => 'File uploaded successfully',
-//                 'path' => $path,
-//                 'upload_tmp_dir' => ini_get('upload_tmp_dir'),
-//                 'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
-//             ];
-//         } catch(\Exception $e) {
-//             return [
-//                 'success' => false,
-//                 'message' => $e->getMessage(),
-//                 'upload_tmp_dir' => ini_get('upload_tmp_dir'),
-//                 'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
-//             ];
-//         }
-//     }
+Route::post('/test-file-upload', function(Request $request) {
+    if($request->hasFile('test_file')) {
+        try {
+            $file = $request->file('test_file');
+            $path = $file->store('test-uploads', 'public');
+            return [
+                'success' => true,
+                'message' => 'File uploaded successfully',
+                'path' => $path,
+                'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+                'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
+            ];
+        } catch(\Exception $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+                'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
+            ];
+        }
+    }
     
-//     return [
-//         'success' => false,
-//         'message' => 'No file provided',
-//         'upload_tmp_dir' => ini_get('upload_tmp_dir'),
-//         'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
-//     ];
-// })->name('test-file-upload.post');
+    return [
+        'success' => false,
+        'message' => 'No file provided',
+        'upload_tmp_dir' => ini_get('upload_tmp_dir'),
+        'is_writable' => is_writable(ini_get('upload_tmp_dir') ?: sys_get_temp_dir())
+    ];
+})->name('test-file-upload.post');
 
 /*
 |--------------------------------------------------------------------------
@@ -195,7 +195,7 @@ Route::group(['prefix' => 'install'], static function () {
 });
 
 // auth
-Route::group(['middleware' => ['Role', 'checkSchoolStatus', 'status','SwitchDatabase','verifiedEmail','CheckForMaintenanceMode','2fa','wizardSettings']], static function () {
+Route::group(['middleware' => ['Role', 'checkSchoolStatus', 'status','SwitchDatabase','verifiedEmail','CheckForMaintenanceMode','2fa']], static function () {
 
     Route::group(['middleware' => 'language'], static function () {
 
@@ -891,6 +891,7 @@ Route::group(['middleware' => ['Role', 'checkSchoolStatus', 'status','SwitchData
         Route::post('zoom-settings', [ZoomSettingsController::class, 'store'])->name('zoom-settings.store');
         
         Route::get('zoom/attendance/{id}', [ZoomController::class, 'attendance'])->name('zoom.attendance');
+        Route::get('zoom/list', [ZoomController::class, 'list'])->name('zoom.list');
         Route::resource('zoom', ZoomController::class);
     });
 });

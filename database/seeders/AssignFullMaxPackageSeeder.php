@@ -29,7 +29,7 @@ class AssignFullMaxPackageSeeder extends Seeder
             return;
         }
 
-        $fullMaxPackage = Package::where('name', 'FULL MAX')->first();
+        $fullMaxPackage = Package::where('name', 'PRO MAX')->first();
 
         if (!$fullMaxPackage) {
             $this->command->error('FULL MAX package not found!');

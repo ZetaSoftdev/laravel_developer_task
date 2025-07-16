@@ -74,21 +74,21 @@ class FixZoomVisibilitySeeder extends Seeder
                 DB::connection('school')->reconnect();
                 DB::setDefaultConnection('school');
 
-                // Run Zoom migrations
+                // Run Zoom migrations with correct paths
                 Artisan::call('migrate', [
-                    '--path' => 'database/migrations/2025_07_10_223815_create_zoom_settings_table.php',
+                    '--path' => 'database/migrations/2024_03_19_000001_create_zoom_settings_table.php',
                     '--database' => 'school',
                     '--force' => true
                 ]);
                 
                 Artisan::call('migrate', [
-                    '--path' => 'database/migrations/2025_07_10_223834_create_zoom_online_classes_table.php',
+                    '--path' => 'database/migrations/2024_03_19_000002_create_zoom_online_classes_table.php',
                     '--database' => 'school',
                     '--force' => true
                 ]);
                 
                 Artisan::call('migrate', [
-                    '--path' => 'database/migrations/2025_07_10_223846_create_zoom_attendances_table.php',
+                    '--path' => 'database/migrations/2024_03_19_000003_create_zoom_attendances_table.php',
                     '--database' => 'school',
                     '--force' => true
                 ]);

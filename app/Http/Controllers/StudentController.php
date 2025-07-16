@@ -225,9 +225,12 @@ class StudentController extends Controller {
             ]);
         }
 
-        $sql = $this->student->builder()->where('application_type', 'offline')->where('application_type', 'online')
-        ->orwhere(function ($query) {
-            $query->where('application_status', 1); // Only online applications with status 1
+        $sql = $this->student->builder()->where(function ($query) {
+            $query->where('application_type', 'offline')
+                ->orWhere(function ($q) {
+                    $q->where('application_type', 'online')
+                      ->where('application_status', 1);
+                });
         })
         ->with('user.extra_student_details.form_field', 'guardian', 'class_section.class.stream', 'class_section.section', 'class_section.medium')
             ->where(function ($query) use ($search) {
@@ -366,11 +369,12 @@ class StudentController extends Controller {
                 $subscription = $this->subscriptionService->active_subscription(Auth::user()->school_id);
                 // If prepaid plan check student limit
                 if ($subscription && $subscription->package_type == 0) {
-                    $status = $this->subscriptionService->check_user_limit($subscription, "Students");
+                    // Temporarily bypass subscription limit check
+                    // $status = $this->subscriptionService->check_user_limit($subscription, "Students");
                     
-                    if (!$status) {
-                        ResponseService::errorResponse('You reach out limits');
-                    }
+                    // if (!$status) {
+                    //     ResponseService::errorResponse('You reach out limits');
+                    // }
                 }
             }
                         
@@ -395,11 +399,12 @@ class StudentController extends Controller {
                     $subscription = $this->subscriptionService->active_subscription(Auth::user()->school_id);
                     // If prepaid plan check student limit
                     if ($subscription && $subscription->package_type == 0) {
-                        $status = $this->subscriptionService->check_user_limit($subscription,"Students");
+                        // Temporarily bypass subscription limit check
+                        // $status = $this->subscriptionService->check_user_limit($subscription,"Students");
                         
-                        if (!$status) {
-                            ResponseService::errorResponse('You reach out limits');
-                        }
+                        // if (!$status) {
+                        //     ResponseService::errorResponse('You reach out limits');
+                        // }
                     }
                 }
 
@@ -1008,11 +1013,12 @@ class StudentController extends Controller {
                     $subscription = $this->subscriptionService->active_subscription(Auth::user()->school_id);
                     // If prepaid plan check student limit
                     if ($subscription && $subscription->package_type == 0) {
-                        $status = $this->subscriptionService->check_user_limit($subscription,"Students");
+                        // Temporarily bypass subscription limit check
+                        // $status = $this->subscriptionService->check_user_limit($subscription,"Students");
                         
-                        if (!$status) {
-                            ResponseService::errorResponse('You reach out limits');
-                        }
+                        // if (!$status) {
+                        //     ResponseService::errorResponse('You reach out limits');
+                        // }
                     }
                 }
                 if($request->application_status == 1)
@@ -1061,11 +1067,12 @@ class StudentController extends Controller {
                 $subscription = $this->subscriptionService->active_subscription(Auth::user()->school_id);
                 // If prepaid plan check student limit
                 if ($subscription && $subscription->package_type == 0) {
-                    $status = $this->subscriptionService->check_user_limit($subscription,"Students");
+                    // Temporarily bypass subscription limit check
+                    // $status = $this->subscriptionService->check_user_limit($subscription,"Students");
                     
-                    if (!$status) {
-                        ResponseService::errorResponse('You reach out limits');
-                    }
+                    // if (!$status) {
+                    //     ResponseService::errorResponse('You reach out limits');
+                    // }
                 }
             }
             if($request->application_status == 1)

@@ -42,7 +42,7 @@ class Kernel extends HttpKernel {
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             DemoMiddleware::class,
             LanguageManager::class,
-            \App\Http\Middleware\WizardSettings::class,
+            // \App\Http\Middleware\WizardSettings::class,
             // \App\Http\Middleware\CustomAuth::class,
         ],
 

@@ -134,6 +134,61 @@
                     </div>
                 @endif
 
+                {{-- Upcoming Zoom Classes for Teachers --}}
+                @if (Auth::user()->hasRole('Teacher'))
+                    @hasFeature('Zoom Online Classes')
+                        <div class="col-md-4 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body custom-card-body">
+                                    <div class="clearfix">
+                                        <h4 class="card-title float-left">
+                                            <i class="fa fa-video-camera text-primary mr-2"></i>{{ __('Upcoming Online Classes') }}
+                                        </h4>
+                                        <a href="{{ route('zoom.index') }}" class="btn btn-sm btn-primary float-right">
+                                            {{ __('Manage') }}
+                                        </a>
+                                    </div>
+                                    <div class="v-scroll dashboard-description">
+                                        @if (count($upcomingZoomClasses) > 0)
+                                            @foreach ($upcomingZoomClasses as $class)
+                                                <div class="wrapper mb-2 d-flex align-items-center justify-content-between py-2 border-bottom">
+                                                    <div class="d-flex">
+                                                        <div class="wrapper ms-3">
+                                                            <h6 class="mb-1">{{ $class->title }}</h6>
+                                                            <span class="text-small text-muted">{{ $class->subject->name ?? 'N/A' }}</span>
+                                                            <br>
+                                                            <span class="text-small text-success">
+                                                                <i class="fa fa-clock-o mr-1"></i>{{ date('M d, h:i A', strtotime($class->start_time)) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex flex-column">
+                                                        @if($class->start_time <= now()->addMinutes(15) && $class->end_time >= now())
+                                                            <a href="{{ $class->start_url }}" target="_blank" class="btn btn-success btn-xs mb-1">
+                                                                <i class="fa fa-play mr-1"></i>{{ __('Start') }}
+                                                            </a>
+                                                        @else
+                                                            <span class="badge badge-info">{{ __('Scheduled') }}</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <div class="col-md-12 text-center bg-light p-2 mb-2">
+                                                <i class="fa fa-video-camera fa-2x text-muted mb-2"></i>
+                                                <p class="text-muted">{{ __('No upcoming online classes') }}</p>
+                                                <a href="{{ route('zoom.create') }}" class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-plus mr-1"></i>{{ __('Create Class') }}
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endHasFeature
+                @endif
+
                 {{-- Class section wise attendance --}}
                 <div class="col-md-4 d-flex flex-column">
                     <div class="row flex-grow">

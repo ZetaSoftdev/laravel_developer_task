@@ -81,6 +81,13 @@ Route::group(['prefix' => 'student'], static function () {
 
         Route::get('school-settings', [StudentApiController::class, 'getSchoolSettings']);
 
+        // Zoom online classes routes
+        Route::get('zoom/upcoming-classes', [StudentApiController::class, 'getUpcomingZoomClasses']); // Get upcoming Zoom classes
+        Route::get('zoom/join-session', [StudentApiController::class, 'joinZoomSession']); // Join Zoom session
+        Route::post('zoom/mark-attendance', [StudentApiController::class, 'markZoomAttendance']); // Mark attendance for Zoom class
+        Route::get('zoom/attendance-history', [StudentApiController::class, 'getZoomAttendanceHistory']); // Get Zoom attendance history
+        Route::post('zoom/send-notifications', [StudentApiController::class, 'sendZoomClassNotifications']); // Send Zoom class notifications
+
 
     });
 });

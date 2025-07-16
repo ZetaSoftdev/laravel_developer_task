@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class ZoomSetting extends Model
 {
@@ -35,5 +36,28 @@ class ZoomSetting extends Model
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    public function scopeOwner($query)
+    {
+        if (Auth::user()) {
+            if (Auth::user()->school_id) {
+                return $query->where('school_id', Auth::user()->school_id);
+            }
+
+            if (!Auth::user()->school_id) {
+                if (Auth::user()->hasRole('Super Admin')) {
+                    return $query->where('school_id', null);
+                }
+                if (Auth::user()->hasRole('Guardian')) {
+                    $childId = request('child_id');
+                    $studentAuth = Students::where('id', $childId)->first();
+                    return $query->where('school_id', $studentAuth->school_id);
+                }
+                return $query->where('school_id', null);
+            }
+        }
+
+        return $query;
     }
 }

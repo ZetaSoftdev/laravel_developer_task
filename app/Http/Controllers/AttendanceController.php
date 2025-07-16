@@ -9,6 +9,7 @@ use App\Services\CachingService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -44,7 +45,28 @@ class AttendanceController extends Controller
     {
         ResponseService::noFeatureThenRedirect('Attendance Management');
         ResponseService::noAnyPermissionThenRedirect(['class-teacher', 'attendance-list']);
-        $class_sections = $this->classSection->builder()->ClassTeacher()->with('class', 'class.stream', 'section', 'medium')->get();
+        
+        // Get class sections where the user is either a class teacher or subject teacher
+        if (Auth::user()->hasRole('Teacher')) {
+            $teacherId = Auth::user()->id;
+            $class_sections = $this->classSection->builder()
+                ->where(function($query) use ($teacherId) {
+                    // Where user is class teacher
+                    $query->whereHas('class_teachers', function($q) use ($teacherId) {
+                        $q->where('teacher_id', $teacherId);
+                    })
+                    // Or where user teaches any subject
+                    ->orWhereHas('subject_teachers', function($q) use ($teacherId) {
+                        $q->where('teacher_id', $teacherId);
+                    });
+                })
+                ->with('class', 'class.stream', 'section', 'medium')
+                ->get();
+        } else {
+            // For admin or other roles, show all class sections
+            $class_sections = $this->classSection->builder()->with('class', 'class.stream', 'section', 'medium')->get();
+        }
+        
         return view('attendance.view', compact('class_sections'));
     }
 
@@ -258,7 +280,27 @@ class AttendanceController extends Controller
     {
         ResponseService::noFeatureThenRedirect('Attendance Management');
         ResponseService::noAnyPermissionThenRedirect(['class-teacher', 'attendance-list']);
-        $class_sections = $this->classSection->builder()->ClassTeacher()->with('class', 'class.stream', 'section', 'medium')->get();
+        
+        // Get class sections where the user is either a class teacher or subject teacher
+        if (Auth::user()->hasRole('Teacher')) {
+            $teacherId = Auth::user()->id;
+            $class_sections = $this->classSection->builder()
+                ->where(function($query) use ($teacherId) {
+                    // Where user is class teacher
+                    $query->whereHas('class_teachers', function($q) use ($teacherId) {
+                        $q->where('teacher_id', $teacherId);
+                    })
+                    // Or where user teaches any subject
+                    ->orWhereHas('subject_teachers', function($q) use ($teacherId) {
+                        $q->where('teacher_id', $teacherId);
+                    });
+                })
+                ->with('class', 'class.stream', 'section', 'medium')
+                ->get();
+        } else {
+            // For admin or other roles, show all class sections
+            $class_sections = $this->classSection->builder()->with('class', 'class.stream', 'section', 'medium')->get();
+        }
 
         return view('attendance.month_wise',compact('class_sections'));
     }

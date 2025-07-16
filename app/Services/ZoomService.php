@@ -21,7 +21,19 @@ class ZoomService
 
     public function __construct()
     {
-        $this->client = new Client();
+        // Configure Guzzle client with proper SSL settings
+        $clientConfig = [];
+        
+        // In development, you might need to disable SSL verification
+        // For production, always use proper SSL verification
+        if (app()->environment('local', 'development')) {
+            $clientConfig['verify'] = false;
+        } else {
+            // In production, use the system's CA bundle
+            $clientConfig['verify'] = true;
+        }
+        
+        $this->client = new Client($clientConfig);
         
         // Get settings from database if available
         if (Auth::check() && Auth::user()->school_id) {
@@ -62,7 +74,6 @@ class ZoomService
     
             // Request new access token from Zoom API
             $response = $this->client->post($this->oauthEndpoint, [
-                'verify' => base_path('cacert.pem'),
                 'headers' => [
                     'Authorization' => 'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret),
                     'Content-Type' => 'application/x-www-form-urlencoded'
