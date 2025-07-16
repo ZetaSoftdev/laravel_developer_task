@@ -7,12 +7,13 @@
 4. [Multi-Tenant SaaS Architecture](#4-multi-tenant-saas-architecture)
 5. [Database Design](#5-database-design)
 6. [API Documentation](#6-api-documentation)
-7. [Payment & Subscription System](#7-payment--subscription-system)
-8. [Real-time Communication](#8-real-time-communication)
-9. [Security Features](#9-security-features)
-10. [Deployment Guide](#10-deployment-guide)
-11. [Technical Specifications](#11-technical-specifications)
-12. [Troubleshooting](#12-troubleshooting)
+7. [Zoom Integration API](#7-zoom-integration-api)
+8. [Payment & Subscription System](#8-payment--subscription-system)
+9. [Real-time Communication](#9-real-time-communication)
+10. [Security Features](#10-security-features)
+11. [Deployment Guide](#11-deployment-guide)
+12. [Technical Specifications](#12-technical-specifications)
+13. [Troubleshooting](#13-troubleshooting)
 
 ---
 
@@ -516,9 +517,457 @@ POST /api/change-password
 
 ---
 
-## 7. Payment & Subscription System
+## 7. Zoom Integration API
 
-### 7.1 Subscription Model
+### 7.1 Overview
+
+The ER21 School Management System includes comprehensive Zoom integration that allows teachers to schedule and manage online classes through their web panel, while students can join sessions and track attendance through mobile applications.
+
+### 7.2 Zoom API Endpoints for Mobile Apps
+
+**Base URL:** `https://your-domain.com/api/student/`
+
+**Authentication:** All Zoom API endpoints require authentication using Laravel Sanctum tokens.
+
+**Required Headers:**
+```http
+Authorization: Bearer {your_sanctum_token}
+Content-Type: application/json
+Accept: application/json
+```
+
+### 7.3 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/zoom/upcoming-classes` | Get upcoming Zoom classes |
+| GET | `/zoom/join-session` | Join a Zoom session |
+| POST | `/zoom/mark-attendance` | Mark attendance for Zoom class |
+| GET | `/zoom/attendance-history` | Get Zoom attendance history |
+| POST | `/zoom/send-notifications` | Send Zoom class notifications |
+
+### 7.4 Detailed API Documentation
+
+#### **Get Upcoming Zoom Classes**
+
+**Endpoint:** `GET /api/student/zoom/upcoming-classes`
+
+**Description:** Retrieves all upcoming Zoom classes for the authenticated student.
+
+**Request Parameters:** None
+
+**Response Format:**
+```json
+{
+    "error": false,
+    "message": "Upcoming Zoom Classes Fetched Successfully",
+    "data": [
+        {
+            "id": 1,
+            "title": "Mathematics - Algebra Basics",
+            "description": "Introduction to algebraic expressions and equations",
+            "meeting_id": "123456789",
+            "join_url": "https://zoom.us/j/123456789?pwd=...",
+            "start_time": "2025-01-20T10:00:00.000000Z",
+            "end_time": "2025-01-20T11:00:00.000000Z",
+            "duration": 60,
+            "status": "scheduled",
+            "teacher": {
+                "id": 4,
+                "first_name": "John",
+                "last_name": "Doe",
+                "full_name": "John Doe"
+            },
+            "subject": {
+                "id": 1,
+                "name": "Mathematics",
+                "code": "MATH101",
+                "bg_color": "#FF5733"
+            },
+            "class_section": {
+                "id": 1,
+                "name": "Class 10-A"
+            }
+        }
+    ]
+}
+```
+
+#### **Join Zoom Session**
+
+**Endpoint:** `GET /api/student/zoom/join-session`
+
+**Description:** Provides the join URL and meeting details for a specific Zoom class.
+
+**Request Parameters:**
+```json
+{
+    "class_id": 1  // Required: Zoom online class ID
+}
+```
+
+**Response Format:**
+```json
+{
+    "error": false,
+    "message": "Zoom Session Details Retrieved Successfully",
+    "data": {
+        "class_id": 1,
+        "meeting_id": "123456789",
+        "password": "meeting_password",
+        "join_url": "https://zoom.us/j/123456789?pwd=...",
+        "title": "Mathematics - Algebra Basics",
+        "teacher_name": "John Doe",
+        "subject_name": "Mathematics",
+        "start_time": "2025-01-20T10:00:00.000000Z",
+        "end_time": "2025-01-20T11:00:00.000000Z",
+        "duration": 60,
+        "status": "live"
+    }
+}
+```
+
+#### **Mark Zoom Attendance**
+
+**Endpoint:** `POST /api/student/zoom/mark-attendance`
+
+**Description:** Marks attendance for a student in a Zoom class session.
+
+**Request Parameters:**
+```json
+{
+    "class_id": 1,  // Required: Zoom online class ID
+    "join_time": "2025-01-20T10:05:00.000000Z",  // Optional: Auto-set to current time if not provided
+    "remarks": "Joined on time"  // Optional: Additional remarks
+}
+```
+
+**Response Format:**
+```json
+{
+    "error": false,
+    "message": "Zoom Attendance Marked Successfully",
+    "data": {
+        "attendance_id": 15,
+        "class_id": 1,
+        "student_id": 25,
+        "join_time": "2025-01-20T10:05:00.000000Z",
+        "status": "present",
+        "remarks": "Joined on time",
+        "class_title": "Mathematics - Algebra Basics",
+        "teacher_name": "John Doe"
+    }
+}
+```
+
+#### **Get Zoom Attendance History**
+
+**Endpoint:** `GET /api/student/zoom/attendance-history`
+
+**Description:** Retrieves the attendance history for Zoom classes for the authenticated student.
+
+**Request Parameters:**
+```json
+{
+    "month": 1,        // Optional: Filter by month (1-12)
+    "year": 2025,      // Optional: Filter by year
+    "subject_id": 1,   // Optional: Filter by subject
+    "limit": 20,       // Optional: Number of records per page (default: 20)
+    "page": 1          // Optional: Page number (default: 1)
+}
+```
+
+**Response Format:**
+```json
+{
+    "error": false,
+    "message": "Zoom Attendance History Fetched Successfully",
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 15,
+                "join_time": "2025-01-20T10:05:00.000000Z",
+                "leave_time": "2025-01-20T10:55:00.000000Z",
+                "duration": 50,
+                "status": "present",
+                "remarks": "Joined on time",
+                "online_class": {
+                    "id": 1,
+                    "title": "Mathematics - Algebra Basics",
+                    "start_time": "2025-01-20T10:00:00.000000Z",
+                    "end_time": "2025-01-20T11:00:00.000000Z",
+                    "teacher": {
+                        "full_name": "John Doe"
+                    },
+                    "subject": {
+                        "name": "Mathematics",
+                        "code": "MATH101"
+                    }
+                }
+            }
+        ],
+        "first_page_url": "http://your-domain.com/api/student/zoom/attendance-history?page=1",
+        "from": 1,
+        "last_page": 3,
+        "last_page_url": "http://your-domain.com/api/student/zoom/attendance-history?page=3",
+        "next_page_url": "http://your-domain.com/api/student/zoom/attendance-history?page=2",
+        "path": "http://your-domain.com/api/student/zoom/attendance-history",
+        "per_page": 20,
+        "prev_page_url": null,
+        "to": 20,
+        "total": 45
+    }
+}
+```
+
+### 7.5 Zoom Data Models
+
+#### **ZoomOnlineClass Model**
+```php
+{
+    "id": integer,
+    "school_id": integer,
+    "teacher_id": integer,
+    "class_section_id": integer,
+    "subject_id": integer,
+    "title": string,
+    "description": text,
+    "meeting_id": string,
+    "password": string,
+    "join_url": string,
+    "start_url": string,
+    "start_time": datetime,
+    "end_time": datetime,
+    "duration": integer, // in minutes
+    "is_recurring": boolean,
+    "recurrence_type": string, // daily, weekly, monthly
+    "recurring_interval": integer,
+    "status": string, // scheduled, live, completed, cancelled
+    "session_year_id": integer,
+    "created_at": datetime,
+    "updated_at": datetime,
+    "deleted_at": datetime
+}
+```
+
+#### **ZoomAttendance Model**
+```php
+{
+    "id": integer,
+    "zoom_online_class_id": integer,
+    "student_id": integer,
+    "join_time": datetime,
+    "leave_time": datetime,
+    "duration": integer, // in minutes
+    "status": string, // present, absent, late
+    "remarks": string,
+    "created_at": datetime,
+    "updated_at": datetime
+}
+```
+
+#### **ZoomSetting Model**
+```php
+{
+    "id": integer,
+    "school_id": integer,
+    "api_key": string,
+    "api_secret": string,
+    "account_id": string,
+    "client_id": string,
+    "client_secret": string,
+    "access_token": string,
+    "refresh_token": string,
+    "token_expires_at": datetime,
+    "is_active": boolean,
+    "created_at": datetime,
+    "updated_at": datetime
+}
+```
+
+### 7.6 Mobile App Integration Examples
+
+#### **Authentication Flow**
+```javascript
+// Login with school code
+const loginResponse = await fetch('/api/student/login', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        gr_number: 'student_gr_number',
+        password: 'password',
+        school_code: 'SCH20251'
+    })
+});
+
+const { token } = await loginResponse.json();
+// Store token for subsequent requests
+```
+
+#### **Fetching Upcoming Classes**
+```javascript
+const getUpcomingClasses = async () => {
+    const response = await fetch('/api/student/zoom/upcoming-classes', {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+        }
+    });
+    
+    const data = await response.json();
+    return data.data; // Array of upcoming classes
+};
+```
+
+#### **Joining a Zoom Session**
+```javascript
+const joinZoomClass = async (classId) => {
+    const response = await fetch(`/api/student/zoom/join-session?class_id=${classId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+        }
+    });
+    
+    const data = await response.json();
+    if (!data.error) {
+        // Open Zoom app or web client with join_url
+        window.open(data.data.join_url, '_blank');
+        
+        // Mark attendance
+        await markAttendance(classId);
+    }
+};
+```
+
+#### **Marking Attendance**
+```javascript
+const markAttendance = async (classId) => {
+    const response = await fetch('/api/student/zoom/mark-attendance', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            class_id: classId,
+            remarks: 'Joined via mobile app'
+        })
+    });
+    
+    return await response.json();
+};
+```
+
+### 7.7 Push Notifications
+
+#### **Notification Types**
+1. **zoom_class_reminder**: Sent 15-30 minutes before class starts
+2. **zoom_class_started**: Sent when class goes live
+3. **zoom_class_cancelled**: Sent when class is cancelled
+
+#### **Notification Data Structure**
+```json
+{
+    "title": "Zoom Class Starting Soon",
+    "body": "Your Mathematics class with John Doe starts in 15 minutes",
+    "type": "zoom_class_reminder",
+    "custom_data": {
+        "class_id": 1,
+        "subject_name": "Mathematics",
+        "teacher_name": "John Doe",
+        "start_time": "2025-01-20T10:00:00",
+        "join_url": "https://zoom.us/j/123456789?pwd=..."
+    }
+}
+```
+
+#### **Handling Notifications in Mobile App**
+```javascript
+// Firebase Cloud Messaging (FCM) handler
+messaging.onMessage((payload) => {
+    const { notification, data } = payload;
+    
+    if (data.type === 'zoom_class_reminder') {
+        // Show notification with join button
+        showZoomClassNotification({
+            title: notification.title,
+            body: notification.body,
+            classId: data.class_id,
+            joinUrl: data.join_url
+        });
+    }
+});
+```
+
+### 7.8 Testing Examples
+
+#### **cURL Test Commands**
+
+**Test 1: Get Upcoming Classes**
+```bash
+curl -X GET "https://your-domain.com/api/student/zoom/upcoming-classes" \
+  -H "Authorization: Bearer your_token" \
+  -H "Accept: application/json"
+```
+
+**Test 2: Join Session**
+```bash
+curl -X GET "https://your-domain.com/api/student/zoom/join-session?class_id=1" \
+  -H "Authorization: Bearer your_token" \
+  -H "Accept: application/json"
+```
+
+**Test 3: Mark Attendance**
+```bash
+curl -X POST "https://your-domain.com/api/student/zoom/mark-attendance" \
+  -H "Authorization: Bearer your_token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "class_id": 1,
+    "remarks": "Test attendance"
+  }'
+```
+
+### 7.9 Error Handling
+
+#### **Common Error Codes**
+- `400`: Bad Request - Invalid parameters
+- `401`: Unauthorized - Invalid or missing token
+- `403`: Forbidden - Access denied
+- `404`: Not Found - Resource not found
+- `422`: Validation Error - Invalid input data
+- `500`: Internal Server Error
+
+#### **Error Response Format**
+```json
+{
+    "error": true,
+    "message": "Error description",
+    "data": null,
+    "code": 400
+}
+```
+
+### 7.10 Security Considerations
+
+1. **Authentication**: All endpoints require valid Sanctum tokens
+2. **Authorization**: Students can only access their own class data
+3. **Rate Limiting**: Implement rate limiting for API endpoints
+4. **Data Validation**: All input data is validated server-side
+5. **HTTPS**: Always use HTTPS in production
+6. **Token Expiry**: Implement proper token refresh mechanisms
+
+---
+
+## 8. Payment & Subscription System
+
+### 8.1 Subscription Model
 
 **Package Types:**
 - **Prepaid**: Pay before service period
@@ -575,7 +1024,7 @@ Available Features:
 6. Features enabled for school
 ```
 
-### 7.3 Billing System
+### 8.3 Billing System
 
 **Subscription Bills:**
 - Generated based on package type
@@ -591,9 +1040,9 @@ Available Features:
 
 ---
 
-## 8. Real-time Communication
+## 9. Real-time Communication
 
-### 8.1 WebSocket Implementation
+### 9.1 WebSocket Implementation
 
 **Technology Stack:**
 - Ratchet/ReactPHP for WebSocket server
@@ -647,7 +1096,7 @@ php artisan websocket:init
 
 ---
 
-## 9. Security Features
+## 10. Security Features
 
 ### 9.1 Authentication & Authorization
 
@@ -692,9 +1141,9 @@ php artisan websocket:init
 
 ---
 
-## 10. Deployment Guide
+## 11. Deployment Guide
 
-### 10.1 System Requirements
+### 11.1 System Requirements
 
 **Server Requirements:**
 - PHP 8.1 or higher
@@ -855,9 +1304,9 @@ Header set Referrer-Policy "strict-origin-when-cross-origin"
 
 ---
 
-## 11. Technical Specifications
+## 12. Technical Specifications
 
-### 11.1 Framework Details
+### 12.1 Framework Details
 
 **Laravel Framework:**
 - Version: 10.x
@@ -921,7 +1370,7 @@ Header set Referrer-Policy "strict-origin-when-cross-origin"
 
 ---
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 ### 12.1 Common Issues
 

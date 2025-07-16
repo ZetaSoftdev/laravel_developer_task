@@ -71,6 +71,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ManualPaymentController;
 use App\Http\Controllers\Admin\ManualPaymentController as AdminManualPaymentController;
 use App\Http\Controllers\ZoomController;
+use App\Http\Controllers\ZoomOnlineClassController;
 use App\Http\Controllers\ZoomSettingsController;
 use App\Models\PaymentTransaction;
 use App\Models\Subscription;
@@ -892,6 +893,7 @@ Route::group(['middleware' => ['Role', 'checkSchoolStatus', 'status','SwitchData
         
         Route::get('zoom/attendance/{id}', [ZoomController::class, 'attendance'])->name('zoom.attendance');
         Route::get('zoom/list', [ZoomController::class, 'list'])->name('zoom.list');
+        Route::get('zoom/get-subjects/{class_section_id}', [ZoomOnlineClassController::class, 'getSubjectsByClassSection'])->name('zoom.get-subjects');
         Route::resource('zoom', ZoomController::class);
     });
 });

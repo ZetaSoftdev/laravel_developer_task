@@ -8,6 +8,7 @@
     <div class="content-wrapper">
         <div class="page-header">
             <h3 class="page-title">
+                <i class="mdi mdi-video-plus"></i>
                 {{ __('Create Online Class') }}
             </h3>
             <nav aria-label="breadcrumb">
@@ -16,6 +17,12 @@
                     <li class="breadcrumb-item active" aria-current="page">{{ __('Create') }}</li>
                 </ol>
             </nav>
+            <div class="page-header-actions">
+                <a href="{{ route('zoom.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="mdi mdi-arrow-left"></i>
+                    {{ __('Back to Online Classes') }}
+                </a>
+            </div>
         </div>
         <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
@@ -80,6 +87,7 @@
                             <div class="row mt-3">
                                 <div class="col-md-12">
                                     <button type="submit" class="btn btn-gradient-primary me-2">{{ __('Create') }}</button>
+                                    <a href="{{ route('zoom.index') }}" class="btn btn-secondary me-2">{{ __('Back') }}</a>
                                     <a href="{{ route('zoom.index') }}" class="btn btn-light">{{ __('Cancel') }}</a>
                                 </div>
                             </div>
@@ -94,6 +102,89 @@
 @section('js')
 <script>
     $(document).ready(function () {
+        // Initialize Select2
+        $('.select2').select2();
+        
+        // Store original subjects for reset functionality
+        const originalSubjects = @json($subjects);
+        
+        // Handle class section change
+        $('#class_section_id').on('change', function() {
+            const classSectionId = $(this).val();
+            const subjectSelect = $('#subject_id');
+            
+            if (classSectionId) {
+                // Show loading state
+                subjectSelect.html('<option value="">{{ __("Loading...") }}</option>');
+                subjectSelect.prop('disabled', true);
+                
+                // Fetch subjects for selected class section
+                $.ajax({
+                    url: "{{ route('zoom.get-subjects', ':id') }}".replace(':id', classSectionId),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        subjectSelect.html('<option value="">{{ __("Select Subject") }}</option>');
+                        
+                        if (response.success && response.subjects.length > 0) {
+                            $.each(response.subjects, function(index, subject) {
+                                subjectSelect.append(
+                                    '<option value="' + subject.id + '">' + 
+                                    subject.name + 
+                                    (subject.code ? ' (' + subject.code + ')' : '') + 
+                                    '</option>'
+                                );
+                            });
+                        } else {
+                            subjectSelect.append('<option value="" disabled>{{ __("No subjects found for this class") }}</option>');
+                        }
+                        
+                        subjectSelect.prop('disabled', false);
+                        subjectSelect.select2('destroy').select2(); // Reinitialize Select2
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching subjects:', error);
+                        subjectSelect.html('<option value="">{{ __("Error loading subjects") }}</option>');
+                        subjectSelect.prop('disabled', false);
+                        
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: "{{ __('Error') }}",
+                            text: "{{ __('Failed to load subjects. Please try again.') }}"
+                        });
+                    }
+                });
+            } else {
+                // Reset to original subjects if no class section selected
+                subjectSelect.html('<option value="">{{ __("Select Subject") }}</option>');
+                $.each(originalSubjects, function(index, subject) {
+                    subjectSelect.append(
+                        '<option value="' + subject.id + '">' + 
+                        subject.name + 
+                        (subject.code ? ' (' + subject.code + ')' : '') + 
+                        '</option>'
+                    );
+                });
+                subjectSelect.prop('disabled', false);
+                subjectSelect.select2('destroy').select2(); // Reinitialize Select2
+            }
+        });
+        
+        // Handle subject change (for reverse compatibility)
+        $('#subject_id').on('change', function() {
+            const subjectId = $(this).val();
+            const classSectionSelect = $('#class_section_id');
+            
+            // If subject is selected but no class section, don't filter class sections
+            // This maintains the current behavior where users can select subject first
+            if (subjectId && !classSectionSelect.val()) {
+                // Allow both selection orders - no additional filtering needed
+                console.log('Subject selected first - maintaining flexibility');
+            }
+        });
+
+        // Form validation
         $('#create-form').validate({
             rules: {
                 title: {
